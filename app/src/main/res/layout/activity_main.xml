@@ -10,12 +10,6 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Hello World!"
-            />
-
             <Button
                 android:id="@+id/buttonStoreJSON"
                 android:layout_width="wrap_content"
@@ -23,5 +17,19 @@
                 android:text="@string/store"
                 android:onClick="pullAndStore">
             </Button>
+            <Button
+                android:id="@+id/buttonView"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="View"
+                android:onClick="viewResult">
+            </Button>
+            <TextView
+                android:id="@+id/textFetchResult"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+            />
+
+
     </LinearLayout>
 </ScrollView>
