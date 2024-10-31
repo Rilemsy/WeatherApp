@@ -1,12 +1,21 @@
 package com.rilemsy.weatherapp
 
+import android.annotation.SuppressLint
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
+import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import android.view.View
+import android.widget.Button
 import android.widget.TextView
+import androidx.core.app.NotificationCompat
+import androidx.core.app.NotificationManagerCompat
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -23,6 +32,8 @@ data class Hourly(
 
 class MainActivity : AppCompatActivity() {
     var result : String =""
+    private val CHANNEL_ID = "channel_id_example_01"
+    private val notificationId = 101
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -33,6 +44,14 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+        Log.d("myTag", "This is my message");
+
+        createNotificationChannel()
+
+        val buttonNotification: Button = findViewById(R.id.buttonNotification)
+        buttonNotification.setOnClickListener{
+            sendNotification()
+        }
     }
 
     fun pullAndStore(view: View?)
@@ -40,6 +59,7 @@ class MainActivity : AppCompatActivity() {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&models=best_match"
         val client = OkHttpClient()
         val request = Request.Builder().url(url).build()
+        Log.d("myTag", "Pull");
 
         client.newCall(request).enqueue(object : okhttp3.Callback {
             override fun onFailure(call: okhttp3.Call, e: IOException) {
@@ -61,7 +81,6 @@ class MainActivity : AppCompatActivity() {
                                 println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
                             }
                         }
-
                     }
                 }
             }
@@ -72,7 +91,32 @@ class MainActivity : AppCompatActivity() {
     {
         val textFetchResult: TextView = findViewById(R.id.textFetchResult)
         textFetchResult.text = result
-
+        Log.d("myTag", "View");
     }
 
+    private fun createNotificationChannel(){
+        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES) {
+        val name = "Notification Title"
+        val descriptionText = "Notification Description"
+        val importance = NotificationManager.IMPORTANCE_DEFAULT
+        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
+            description = descriptionText
+        }
+        val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        notificationManager.createNotificationChannel(channel)
+        //}
+    }
+
+    @SuppressLint("MissingPermission")
+    private  fun sendNotification() {
+        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setContentTitle("Example Title")
+            .setContentText("Example Description")
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+
+        with(NotificationManagerCompat.from(this)){
+            notify(notificationId, builder.build())
+        }
+    }
 }
