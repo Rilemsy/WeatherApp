@@ -19,8 +19,13 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
+import androidx.work.Worker
+import androidx.work.WorkerParameters
 import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -38,78 +43,26 @@ data class Hourly(
     val temperature_2m: List<Double>
 )
 
-class NetworkChangeReceiver : BroadcastReceiver() {
-    override fun onReceive(context: Context, intent: Intent) {
-        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val networkInfo = connectivityManager.activeNetworkInfo
-        if (networkInfo != null && networkInfo.isConnected) {
-            // Perform background task
-            val service = Executors.newSingleThreadScheduledExecutor()
-            val handler = Handler(Looper.getMainLooper())
-            service.scheduleWithFixedDelay({
-            handler.run {
-                // Do your stuff here, It gets loop every 15 Minutes
-                MainActivity.getInstanceActivity()?.sendNotification()
-            }
-            }, 0, 1, TimeUnit.MINUTES);
 
-        }
-    }
-}
+class JsonDownloadWorker(appContext: Context, workerParams: WorkerParameters) : Worker(appContext, workerParams) {
 
-class MainActivity : AppCompatActivity() {
     var result : String =""
     private val CHANNEL_ID = "channel_id_example_01"
     private val notificationId = 101
 
 
-    // etc..
-    companion object{
-        var weakActivity: WeakReference<MainActivity>? = null
-
-        fun getInstanceActivity(): MainActivity? {
-            return weakActivity!!.get()
+    override fun doWork(): Result {
+        // Download JSON
+        //val json = pullAndStore()
+        //if (json != null) {
+        if (true) {
+                sendNotification()
+                return Result.success()
         }
+        return Result.retry()
     }
 
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
-        Log.d("myTag", "This is my message");
-
-        weakActivity = WeakReference(this@MainActivity)
-        createNotificationChannel()
-
-        val buttonNotification: Button = findViewById(R.id.buttonNotification)
-        buttonNotification.setOnClickListener{
-            sendNotification()
-        }
-
-//        val service = Executors.newSingleThreadScheduledExecutor()
-//        val handler = Handler(Looper.getMainLooper())
-//        service.scheduleWithFixedDelay({
-//            handler.run {
-//                // Do your stuff here, It gets loop every 15 Minutes
-//                sendNotification()
-//            }
-//        }, 0, 1, TimeUnit.MINUTES);
-
-
-
-        val networkChangeReceiver = NetworkChangeReceiver()
-        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-        registerReceiver(networkChangeReceiver, filter)
-
-    }
-
-    fun pullAndStore(view: View?)
+    fun pullAndStore()
     {
         val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&models=best_match"
         val client = OkHttpClient()
@@ -142,13 +95,6 @@ class MainActivity : AppCompatActivity() {
         })
     }
 
-    fun viewResult(view: View?)
-    {
-        val textFetchResult: TextView = findViewById(R.id.textFetchResult)
-        textFetchResult.text = result
-        Log.d("myTag", "View");
-    }
-
     private fun createNotificationChannel(){
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES) {
         val name = "Notification Title"
@@ -157,21 +103,126 @@ class MainActivity : AppCompatActivity() {
         val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
             description = descriptionText
         }
-        val notificationManager: NotificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         notificationManager.createNotificationChannel(channel)
         //}
     }
 
     @SuppressLint("MissingPermission")
     public  fun sendNotification() {
-        val builder = NotificationCompat.Builder(this, CHANNEL_ID)
+        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(CHANNEL_ID, "Default Channel", NotificationManager.IMPORTANCE_DEFAULT)
+            notificationManager.createNotificationChannel(channel)
+        }
+        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Example Title")
             .setContentText("Example Description")
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .build()
+        notificationManager.notify(notificationId, builder)
+    }
+}
 
-        with(NotificationManagerCompat.from(this)){
-            notify(notificationId, builder.build())
+//class NetworkChangeReceiver : BroadcastReceiver() {
+//    override fun onReceive(context: Context, intent: Intent) {
+//        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+//        val networkInfo = connectivityManager.activeNetworkInfo
+//        if (networkInfo != null && networkInfo.isConnected) {
+//            // Perform background task
+//            val service = Executors.newSingleThreadScheduledExecutor()
+//            val handler = Handler(Looper.getMainLooper())
+//            service.scheduleWithFixedDelay({
+//            handler.run {
+//                // Do your stuff here, It gets loop every 15 Minutes
+//                MainActivity.getInstanceActivity()?.sendNotification()
+//            }
+//            }, 0, 1, TimeUnit.MINUTES);
+//
+//        }
+//    }
+//}
+
+class MainActivity : AppCompatActivity() {
+    var result : String =""
+    private val CHANNEL_ID = "channel_id_example_01"
+    private val notificationId = 101
+
+
+    // etc..
+    companion object{
+        var weakActivity: WeakReference<MainActivity>? = null
+
+        fun getInstanceActivity(): MainActivity? {
+            return weakActivity!!.get()
         }
     }
+
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
+        setContentView(R.layout.activity_main)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
+        Log.d("myTag", "This is my message");
+
+        scheduleWeatherCheck(this)
+
+//        weakActivity = WeakReference(this@MainActivity)
+//        createNotificationChannel()
+//
+//        val buttonNotification: Button = findViewById(R.id.buttonNotification)
+//        buttonNotification.setOnClickListener{
+//            sendNotification()
+//        }
+
+//        val service = Executors.newSingleThreadScheduledExecutor()
+//        val handler = Handler(Looper.getMainLooper())
+//        service.scheduleWithFixedDelay({
+//            handler.run {
+//                // Do your stuff here, It gets loop every 15 Minutes
+//                sendNotification()
+//            }
+//        }, 0, 1, TimeUnit.MINUTES);
+
+
+
+//        val networkChangeReceiver = NetworkChangeReceiver()
+//        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+//        registerReceiver(networkChangeReceiver, filter)
+
+    }
+
+
+    fun viewResult(view: View?)
+    {
+        val textFetchResult: TextView = findViewById(R.id.textFetchResult)
+        textFetchResult.text = result
+        Log.d("myTag", "View");
+    }
+
+
+    private fun scheduleWeatherCheckOnce() {
+        val sharedPreferences = getSharedPreferences("app_prefs", MODE_PRIVATE)
+        val isTaskScheduled = sharedPreferences.getBoolean("is_task_scheduled", false)
+
+        if (!isTaskScheduled) {
+            // Schedule the WorkManager task
+            scheduleWeatherCheck(this)
+
+            // Mark the task as scheduled to avoid scheduling it again
+            sharedPreferences.edit().putBoolean("is_task_scheduled", true).apply()
+        }
+    }
+
+    private fun scheduleWeatherCheck(context: Context){
+        val workRequest = PeriodicWorkRequestBuilder<JsonDownloadWorker>(15, TimeUnit.MINUTES).build()
+        WorkManager.getInstance(context).enqueue(workRequest)
+    }
+
 }
