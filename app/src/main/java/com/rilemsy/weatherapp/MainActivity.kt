@@ -3,24 +3,32 @@ package com.rilemsy.weatherapp
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.content.BroadcastReceiver
 import android.content.Context
-import android.os.Build
+import android.content.Intent
+import android.content.IntentFilter
+import android.net.ConnectivityManager
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.util.Log
-import androidx.activity.enableEdgeToEdge
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import android.view.View
 import android.widget.Button
 import android.widget.TextView
+import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
-
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
+import com.google.gson.Gson
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import com.google.gson.Gson
 import java.io.IOException
+import java.lang.ref.WeakReference
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 
 data class  WeatherData(
     val hourly: Hourly
@@ -30,10 +38,40 @@ data class Hourly(
     val temperature_2m: List<Double>
 )
 
+class NetworkChangeReceiver : BroadcastReceiver() {
+    override fun onReceive(context: Context, intent: Intent) {
+        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+        val networkInfo = connectivityManager.activeNetworkInfo
+        if (networkInfo != null && networkInfo.isConnected) {
+            // Perform background task
+            val service = Executors.newSingleThreadScheduledExecutor()
+            val handler = Handler(Looper.getMainLooper())
+            service.scheduleWithFixedDelay({
+            handler.run {
+                // Do your stuff here, It gets loop every 15 Minutes
+                MainActivity.getInstanceActivity()?.sendNotification()
+            }
+            }, 0, 1, TimeUnit.MINUTES);
+
+        }
+    }
+}
+
 class MainActivity : AppCompatActivity() {
     var result : String =""
     private val CHANNEL_ID = "channel_id_example_01"
     private val notificationId = 101
+
+
+    // etc..
+    companion object{
+        var weakActivity: WeakReference<MainActivity>? = null
+
+        fun getInstanceActivity(): MainActivity? {
+            return weakActivity!!.get()
+        }
+    }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -46,12 +84,29 @@ class MainActivity : AppCompatActivity() {
         }
         Log.d("myTag", "This is my message");
 
+        weakActivity = WeakReference(this@MainActivity)
         createNotificationChannel()
 
         val buttonNotification: Button = findViewById(R.id.buttonNotification)
         buttonNotification.setOnClickListener{
             sendNotification()
         }
+
+//        val service = Executors.newSingleThreadScheduledExecutor()
+//        val handler = Handler(Looper.getMainLooper())
+//        service.scheduleWithFixedDelay({
+//            handler.run {
+//                // Do your stuff here, It gets loop every 15 Minutes
+//                sendNotification()
+//            }
+//        }, 0, 1, TimeUnit.MINUTES);
+
+
+
+        val networkChangeReceiver = NetworkChangeReceiver()
+        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
+        registerReceiver(networkChangeReceiver, filter)
+
     }
 
     fun pullAndStore(view: View?)
@@ -108,7 +163,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     @SuppressLint("MissingPermission")
-    private  fun sendNotification() {
+    public  fun sendNotification() {
         val builder = NotificationCompat.Builder(this, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentTitle("Example Title")
