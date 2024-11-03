@@ -49,4 +49,6 @@ dependencies {
     implementation("com.squareup.okhttp3:okhttp:4.9.3")
     implementation("com.google.code.gson:gson:2.8.8")
     implementation("androidx.work:work-runtime-ktx:2.7.1")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
 }

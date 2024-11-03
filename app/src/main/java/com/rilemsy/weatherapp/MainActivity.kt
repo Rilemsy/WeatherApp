@@ -22,6 +22,7 @@ import androidx.core.app.NotificationManagerCompat
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.Worker
@@ -34,6 +35,12 @@ import java.lang.ref.WeakReference
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withContext
+import java.net.URL
 
 data class  WeatherData(
     val hourly: Hourly
@@ -53,49 +60,111 @@ class JsonDownloadWorker(appContext: Context, workerParams: WorkerParameters) : 
 
     override fun doWork(): Result {
         // Download JSON
-        //val json = pullAndStore()
-        //if (json != null) {
-        if (true) {
-                sendNotification()
+        val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&models=best_match"
+        val json = pullAndStore(url)
+
+
+        if (json) {
+                sendNotification("Yeah$result")
                 return Result.success()
+        }
+        else {
+            sendNotification("Not lucky")
+            return Result.success()
         }
         return Result.retry()
     }
 
-    fun pullAndStore()
-    {
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&models=best_match"
-        val client = OkHttpClient()
-        val request = Request.Builder().url(url).build()
-        Log.d("myTag", "Pull");
-
-        client.newCall(request).enqueue(object : okhttp3.Callback {
-            override fun onFailure(call: okhttp3.Call, e: IOException) {
+    fun downloadJsonContent(urlString: String, callback: (String?) -> Unit) {
+        val job = CoroutineScope(Dispatchers.IO).launch {
+            val result = try {
+                URL(urlString).openStream().bufferedReader().use { it.readText() }
+            } catch (e: Exception) {
                 e.printStackTrace()
+                null
             }
 
-            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-                response.body?.let { responseBody ->
-                    if (response.isSuccessful) {
-                        val json = responseBody.string()
-
-                        // Parse JSON to WeatherData object
-                        val weatherData = Gson().fromJson(json, WeatherData::class.java)
-
-                        // Print hourly temperatures
-                        weatherData.hourly.time.forEachIndexed { index, time ->
-                            if (index < 10) {
-                                result += "Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}"
-                                println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
-                            }
-                        }
-                    }
-                }
+            withContext(Dispatchers.Main) {
+                callback(result)
             }
-        })
+        }
+
+        runBlocking {
+            job.join()
+        }
     }
 
-    private fun createNotificationChannel(){
+    fun pullAndStore(url : String): Boolean
+    {
+        Log.d("myTag", "Pull");
+
+        result = "1"
+
+        downloadJsonContent(url) { content ->
+            if (content != null) {
+                val weatherData = Gson().fromJson(content, WeatherData::class.java)
+                result = "4"
+
+                // Print hourly temperatures
+                weatherData.hourly.time.forEachIndexed { index, time ->
+                    if (index < 1) {
+                        result = weatherData.hourly.temperature_2m[index].toString()
+
+                        //result += "Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}"
+                        //println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
+                    }
+                }
+                result = "5"
+
+            }
+            else {
+                result = "K"
+            }
+        }
+
+
+//        client.newCall(request).enqueue(object : okhttp3.Callback {
+//            override fun onFailure(call: okhttp3.Call, e: IOException) {
+//                e.printStackTrace()
+//            }
+//
+//            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
+//                response.body?.let { responseBody ->
+//                    if (response.isSuccessful) {
+//                        result = "2"
+//
+//                        val json = responseBody.string()
+//                        result = "3"
+//
+//                        // Parse JSON to WeatherData object
+//                        val weatherData = Gson().fromJson(json, WeatherData::class.java)
+//                        result = "4"
+//
+//                        // Print hourly temperatures
+//                        weatherData.hourly.time.forEachIndexed { index, time ->
+//                            if (index < 1) {
+//                                result = weatherData.hourly.temperature_2m[index].toString()
+//
+//                                //result += "Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}"
+//                                //println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
+//                            }
+//                        }
+//                        result = "5"
+//
+//
+//                    }
+//                }
+//            }
+//        })
+
+        if (result.isEmpty())
+            return false
+        else
+            return true
+
+    }
+
+    fun createNotificationChannel(){
         //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES) {
         val name = "Notification Title"
         val descriptionText = "Notification Description"
@@ -109,16 +178,16 @@ class JsonDownloadWorker(appContext: Context, workerParams: WorkerParameters) : 
     }
 
     @SuppressLint("MissingPermission")
-    public  fun sendNotification() {
+    fun sendNotification(output: String ) {
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             val channel = NotificationChannel(CHANNEL_ID, "Default Channel", NotificationManager.IMPORTANCE_DEFAULT)
             notificationManager.createNotificationChannel(channel)
         }
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_launcher_background)
             .setContentTitle("Example Title")
-            .setContentText("Example Description")
+            .setContentText(output)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
         notificationManager.notify(notificationId, builder)
@@ -222,7 +291,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun scheduleWeatherCheck(context: Context){
         val workRequest = PeriodicWorkRequestBuilder<JsonDownloadWorker>(15, TimeUnit.MINUTES).build()
-        WorkManager.getInstance(context).enqueue(workRequest)
+        WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.KEEP,workRequest)
     }
 
 }
