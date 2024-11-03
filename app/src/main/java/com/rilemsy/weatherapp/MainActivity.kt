@@ -3,23 +3,14 @@ package com.rilemsy.weatherapp
 import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Intent
-import android.content.IntentFilter
-import android.net.ConnectivityManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.util.Log
 import android.view.View
-import android.widget.Button
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
-import androidx.core.app.NotificationManagerCompat
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.work.ExistingPeriodicWorkPolicy
@@ -28,9 +19,6 @@ import androidx.work.WorkManager
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.gson.Gson
-import okhttp3.OkHttpClient
-import okhttp3.Request
-import java.io.IOException
 import java.lang.ref.WeakReference
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -41,6 +29,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.URL
+import java.util.concurrent.Executor
 
 data class  WeatherData(
     val hourly: Hourly
@@ -50,8 +39,7 @@ data class Hourly(
     val temperature_2m: List<Double>
 )
 
-
-class JsonDownloadWorker(appContext: Context, workerParams: WorkerParameters) : Worker(appContext, workerParams) {
+class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : Worker(appContext, workerParams) {
 
     var result : String =""
     private val CHANNEL_ID = "channel_id_example_01"
@@ -70,9 +58,11 @@ class JsonDownloadWorker(appContext: Context, workerParams: WorkerParameters) : 
         }
         else {
             sendNotification("Not lucky")
-            return Result.success()
+            return Result.failure()
         }
-        return Result.retry()
+
+
+
     }
 
     fun downloadJsonContent(urlString: String, callback: (String?) -> Unit) {
@@ -109,7 +99,7 @@ class JsonDownloadWorker(appContext: Context, workerParams: WorkerParameters) : 
                 weatherData.hourly.time.forEachIndexed { index, time ->
                     if (index < 1) {
                         result = weatherData.hourly.temperature_2m[index].toString()
-
+                        Log.d("myTag", result)
                         //result += "Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}"
                         //println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
                     }
@@ -121,41 +111,6 @@ class JsonDownloadWorker(appContext: Context, workerParams: WorkerParameters) : 
                 result = "K"
             }
         }
-
-
-//        client.newCall(request).enqueue(object : okhttp3.Callback {
-//            override fun onFailure(call: okhttp3.Call, e: IOException) {
-//                e.printStackTrace()
-//            }
-//
-//            override fun onResponse(call: okhttp3.Call, response: okhttp3.Response) {
-//                response.body?.let { responseBody ->
-//                    if (response.isSuccessful) {
-//                        result = "2"
-//
-//                        val json = responseBody.string()
-//                        result = "3"
-//
-//                        // Parse JSON to WeatherData object
-//                        val weatherData = Gson().fromJson(json, WeatherData::class.java)
-//                        result = "4"
-//
-//                        // Print hourly temperatures
-//                        weatherData.hourly.time.forEachIndexed { index, time ->
-//                            if (index < 1) {
-//                                result = weatherData.hourly.temperature_2m[index].toString()
-//
-//                                //result += "Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}"
-//                                //println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
-//                            }
-//                        }
-//                        result = "5"
-//
-//
-//                    }
-//                }
-//            }
-//        })
 
         if (result.isEmpty())
             return false
@@ -194,25 +149,6 @@ class JsonDownloadWorker(appContext: Context, workerParams: WorkerParameters) : 
     }
 }
 
-//class NetworkChangeReceiver : BroadcastReceiver() {
-//    override fun onReceive(context: Context, intent: Intent) {
-//        val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-//        val networkInfo = connectivityManager.activeNetworkInfo
-//        if (networkInfo != null && networkInfo.isConnected) {
-//            // Perform background task
-//            val service = Executors.newSingleThreadScheduledExecutor()
-//            val handler = Handler(Looper.getMainLooper())
-//            service.scheduleWithFixedDelay({
-//            handler.run {
-//                // Do your stuff here, It gets loop every 15 Minutes
-//                MainActivity.getInstanceActivity()?.sendNotification()
-//            }
-//            }, 0, 1, TimeUnit.MINUTES);
-//
-//        }
-//    }
-//}
-
 class MainActivity : AppCompatActivity() {
     var result : String =""
     private val CHANNEL_ID = "channel_id_example_01"
@@ -238,7 +174,7 @@ class MainActivity : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        Log.d("myTag", "This is my message");
+        Log.d("myTag", "MainActivityOnCreate");
 
         scheduleWeatherCheck(this)
 
@@ -290,7 +226,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun scheduleWeatherCheck(context: Context){
-        val workRequest = PeriodicWorkRequestBuilder<JsonDownloadWorker>(15, TimeUnit.MINUTES).build()
+        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(15, TimeUnit.MINUTES).build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.KEEP,workRequest)
     }
 
