@@ -47,7 +47,7 @@ class MainActivity : AppCompatActivity() {
         }
         Log.d("myTag", "MainActivityOnCreate");
 
-        scheduleWeatherCheck(this)
+        //scheduleWeatherCheck(this)
 
         CoroutineScope(Dispatchers.IO).launch {
             setNotificationsEnabled()
@@ -60,16 +60,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
-
-
-
-
-
-
-
     }
-
 
     suspend fun viewResult(view: View?)
     {
@@ -82,37 +73,43 @@ class MainActivity : AppCompatActivity() {
         Log.d("myTag", "View");
     }
 
-
-    private fun scheduleWeatherCheckOnce() {
-        val sharedPreferences = getSharedPreferences("app_prefs", MODE_PRIVATE)
-        val isTaskScheduled = sharedPreferences.getBoolean("is_task_scheduled", false)
-
-        if (!isTaskScheduled) {
-            // Schedule the WorkManager task
-            scheduleWeatherCheck(this)
-
-            // Mark the task as scheduled to avoid scheduling it again
-            sharedPreferences.edit().putBoolean("is_task_scheduled", true).apply()
-        }
-    }
-
     private fun scheduleWeatherCheck(context: Context){
         val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(15, TimeUnit.MINUTES).build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.KEEP,workRequest)
     }
 
-
-
     suspend fun editNotificationsEnabled(value: Boolean) {
         dataStore.edit { userData ->
             userData[DataStoreKeys.NOTIFICATIONS_ENABLED] = value
+
+            runOnUiThread {
+                if (value)
+                {
+                    scheduleWeatherCheck(this)
+                }
+                else
+                {
+                    WorkManager.getInstance(this).cancelUniqueWork("getForecast")
+                }
+            }
         }
     }
 
     suspend fun setNotificationsEnabled(){
         dataStore.data.collect { userData ->
             val notificationsEnabled = userData[DataStoreKeys.NOTIFICATIONS_ENABLED] ?: false
+
+
             runOnUiThread {
+                if (notificationsEnabled)
+                {
+                    scheduleWeatherCheck(this)
+                }
+                else
+                {
+                    WorkManager.getInstance(this).cancelUniqueWork("getForecast")
+                }
+
                 val view = findViewById<CheckBox>(R.id.notificationsEnabled)
                 view.isChecked = notificationsEnabled
             }

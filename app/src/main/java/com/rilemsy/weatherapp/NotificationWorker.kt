@@ -3,12 +3,16 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
+import android.widget.CheckBox
 import androidx.core.app.NotificationCompat
+import androidx.datastore.dataStore
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.gson.Gson
+import com.rilemsy.weatherapp.DataStoreKeys
 import com.rilemsy.weatherapp.R
 import com.rilemsy.weatherapp.WeatherData
+import com.rilemsy.weatherapp.dataStore
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,6 +29,14 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
 
     override fun doWork(): Result {
         // Download JSON
+//        runBlocking {
+//            launch {
+//                applicationContext.dataStore.data.collect { userData ->
+//                    val notificationsEnabled = userData[DataStoreKeys.NOTIFICATIONS_ENABLED] ?: false
+//                }
+//            }
+//        }
+
         val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&models=best_match"
         val json = pullAndStore(url)
 
@@ -37,9 +49,6 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
             sendNotification("Not lucky")
             return Result.failure()
         }
-
-
-
     }
 
     fun downloadJsonContent(urlString: String, callback: (String?) -> Unit) {
@@ -55,10 +64,6 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                 callback(result)
             }
         }
-
-        runBlocking {
-            job.join()
-        }
     }
 
     fun pullAndStore(url : String): Boolean
@@ -66,8 +71,9 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         Log.d("myTag", "Pull");
 
         result = "1"
-
+        Log.d("myTag", Thread.currentThread().name)
         downloadJsonContent(url) { content ->
+            result = "44"
             if (content != null) {
                 val weatherData = Gson().fromJson(content, WeatherData::class.java)
                 result = "4"

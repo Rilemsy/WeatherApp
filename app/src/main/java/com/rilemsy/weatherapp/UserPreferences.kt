@@ -14,7 +14,5 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
 )
 
 object DataStoreKeys {
-    val USER_NAME = stringPreferencesKey("user_name")
-    val EMAIL = stringPreferencesKey("email")
     val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
 }
