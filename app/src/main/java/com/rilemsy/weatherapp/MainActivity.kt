@@ -1,35 +1,26 @@
 package com.rilemsy.weatherapp
 
-import android.annotation.SuppressLint
-import android.app.NotificationChannel
-import android.app.NotificationManager
+import NotificationWorker
 import android.content.Context
 import android.os.Bundle
 import android.util.Log
 import android.view.View
+import android.widget.Button
+import android.widget.CheckBox
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.app.NotificationCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.datastore.preferences.core.edit
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
-import androidx.work.Worker
-import androidx.work.WorkerParameters
-import com.google.gson.Gson
-import java.lang.ref.WeakReference
-import java.util.concurrent.Executors
-import java.util.concurrent.TimeUnit
-
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.withContext
-import java.net.URL
-import java.util.concurrent.Executor
+import java.util.concurrent.TimeUnit
+import com.rilemsy.weatherapp.databinding.ActivityMainBinding
 
 data class  WeatherData(
     val hourly: Hourly
@@ -39,131 +30,11 @@ data class Hourly(
     val temperature_2m: List<Double>
 )
 
-class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : Worker(appContext, workerParams) {
-
-    var result : String =""
-    private val CHANNEL_ID = "channel_id_example_01"
-    private val notificationId = 101
-
-
-    override fun doWork(): Result {
-        // Download JSON
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&models=best_match"
-        val json = pullAndStore(url)
-
-
-        if (json) {
-                sendNotification("Yeah$result")
-                return Result.success()
-        }
-        else {
-            sendNotification("Not lucky")
-            return Result.failure()
-        }
-
-
-
-    }
-
-    fun downloadJsonContent(urlString: String, callback: (String?) -> Unit) {
-        val job = CoroutineScope(Dispatchers.IO).launch {
-            val result = try {
-                URL(urlString).openStream().bufferedReader().use { it.readText() }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                null
-            }
-
-            withContext(Dispatchers.Main) {
-                callback(result)
-            }
-        }
-
-        runBlocking {
-            job.join()
-        }
-    }
-
-    fun pullAndStore(url : String): Boolean
-    {
-        Log.d("myTag", "Pull");
-
-        result = "1"
-
-        downloadJsonContent(url) { content ->
-            if (content != null) {
-                val weatherData = Gson().fromJson(content, WeatherData::class.java)
-                result = "4"
-
-                // Print hourly temperatures
-                weatherData.hourly.time.forEachIndexed { index, time ->
-                    if (index < 1) {
-                        result = weatherData.hourly.temperature_2m[index].toString()
-                        Log.d("myTag", result)
-                        //result += "Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}"
-                        //println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
-                    }
-                }
-                result = "5"
-
-            }
-            else {
-                result = "K"
-            }
-        }
-
-        if (result.isEmpty())
-            return false
-        else
-            return true
-
-    }
-
-    fun createNotificationChannel(){
-        //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES) {
-        val name = "Notification Title"
-        val descriptionText = "Notification Description"
-        val importance = NotificationManager.IMPORTANCE_DEFAULT
-        val channel = NotificationChannel(CHANNEL_ID, name, importance).apply {
-            description = descriptionText
-        }
-        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        notificationManager.createNotificationChannel(channel)
-        //}
-    }
-
-    @SuppressLint("MissingPermission")
-    fun sendNotification(output: String ) {
-        val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            val channel = NotificationChannel(CHANNEL_ID, "Default Channel", NotificationManager.IMPORTANCE_DEFAULT)
-            notificationManager.createNotificationChannel(channel)
-        }
-        val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_background)
-            .setContentTitle("Example Title")
-            .setContentText(output)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
-            .build()
-        notificationManager.notify(notificationId, builder)
-    }
-}
-
 class MainActivity : AppCompatActivity() {
     var result : String =""
     private val CHANNEL_ID = "channel_id_example_01"
     private val notificationId = 101
-
-
-    // etc..
-    companion object{
-        var weakActivity: WeakReference<MainActivity>? = null
-
-        fun getInstanceActivity(): MainActivity? {
-            return weakActivity!!.get()
-        }
-    }
-
+    private lateinit var binding: ActivityMainBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -178,36 +49,36 @@ class MainActivity : AppCompatActivity() {
 
         scheduleWeatherCheck(this)
 
-//        weakActivity = WeakReference(this@MainActivity)
-//        createNotificationChannel()
-//
-//        val buttonNotification: Button = findViewById(R.id.buttonNotification)
-//        buttonNotification.setOnClickListener{
-//            sendNotification()
-//        }
+        CoroutineScope(Dispatchers.IO).launch {
+            setNotificationsEnabled()
+        }
 
-//        val service = Executors.newSingleThreadScheduledExecutor()
-//        val handler = Handler(Looper.getMainLooper())
-//        service.scheduleWithFixedDelay({
-//            handler.run {
-//                // Do your stuff here, It gets loop every 15 Minutes
-//                sendNotification()
-//            }
-//        }, 0, 1, TimeUnit.MINUTES);
+        val chkBoxNotificationEnabled = findViewById<CheckBox>(R.id.notificationsEnabled)
+        chkBoxNotificationEnabled.setOnClickListener{
+            CoroutineScope(Dispatchers.IO).launch {
+                editNotificationsEnabled(chkBoxNotificationEnabled.isChecked)
+            }
+        }
 
 
 
-//        val networkChangeReceiver = NetworkChangeReceiver()
-//        val filter = IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION)
-//        registerReceiver(networkChangeReceiver, filter)
+
+
+
+
+
 
     }
 
 
-    fun viewResult(view: View?)
+    suspend fun viewResult(view: View?)
     {
         val textFetchResult: TextView = findViewById(R.id.textFetchResult)
-        textFetchResult.text = result
+//        val notificationsEnabled: Boolean
+        dataStore.data.collect{userData ->
+            val notificationsEnabled = userData[DataStoreKeys.NOTIFICATIONS_ENABLED] ?: false
+            textFetchResult.text = notificationsEnabled.toString()
+        }
         Log.d("myTag", "View");
     }
 
@@ -230,4 +101,21 @@ class MainActivity : AppCompatActivity() {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.KEEP,workRequest)
     }
 
+
+
+    suspend fun editNotificationsEnabled(value: Boolean) {
+        dataStore.edit { userData ->
+            userData[DataStoreKeys.NOTIFICATIONS_ENABLED] = value
+        }
+    }
+
+    suspend fun setNotificationsEnabled(){
+        dataStore.data.collect { userData ->
+            val notificationsEnabled = userData[DataStoreKeys.NOTIFICATIONS_ENABLED] ?: false
+            runOnUiThread {
+                val view = findViewById<CheckBox>(R.id.notificationsEnabled)
+                view.isChecked = notificationsEnabled
+            }
+        }
+    }
 }

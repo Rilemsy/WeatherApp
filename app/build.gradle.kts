@@ -26,6 +26,12 @@ android {
             )
         }
     }
+
+    buildFeatures {
+        viewBinding = true
+        dataBinding = true
+    }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_1_8
         targetCompatibility = JavaVersion.VERSION_1_8
@@ -51,4 +57,6 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:2.7.1")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0")
+    implementation("androidx.datastore:datastore-preferences:1.1.1")
+
 }
