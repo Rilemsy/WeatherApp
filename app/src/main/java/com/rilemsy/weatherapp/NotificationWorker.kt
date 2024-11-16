@@ -3,20 +3,17 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
-import android.widget.CheckBox
 import androidx.core.app.NotificationCompat
-import androidx.datastore.dataStore
 import androidx.work.Worker
 import androidx.work.WorkerParameters
 import com.google.gson.Gson
-import com.rilemsy.weatherapp.DataStoreKeys
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
 import com.rilemsy.weatherapp.R
-import com.rilemsy.weatherapp.WeatherData
-import com.rilemsy.weatherapp.dataStore
+import com.rilemsy.weatherapp.Forecast
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import java.net.URL
 
@@ -75,13 +72,17 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         downloadJsonContent(url) { content ->
             result = "44"
             if (content != null) {
-                val weatherData = Gson().fromJson(content, WeatherData::class.java)
+                //val weatherForecast = Gson().fromJson(content, Forecast::class.java)
+
+                val jsonObject = Gson().fromJson(content, JsonObject::class.java)
+                //val forecast = Gson().fromJson(jsonObject["hourly"], Forecast::class.java)
+                val forecastList : List<Forecast> = GsonBuilder().create().fromJson(jsonObject["hourly"], Array<Forecast>::class.java).toList()
                 result = "4"
 
                 // Print hourly temperatures
-                weatherData.hourly.time.forEachIndexed { index, time ->
-                    if (index < 1) {
-                        result = weatherData.hourly.temperature_2m[index].toString()
+                forecastList.forEachIndexed { index, forecast ->
+                    if (index < 3) {
+                        result = forecast.temperature_2m.toString()
                         Log.d("myTag", result)
                         //result += "Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}"
                         //println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
