@@ -3,6 +3,7 @@ import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.content.Context
 import android.util.Log
+import androidx.activity.viewModels
 import androidx.core.app.NotificationCompat
 import androidx.work.Worker
 import androidx.work.WorkerParameters
@@ -11,6 +12,7 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.rilemsy.weatherapp.R
 import com.rilemsy.weatherapp.Forecast
+import com.rilemsy.weatherapp.ForecastViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -22,7 +24,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
     var result : String =""
     private val CHANNEL_ID = "channel_id_example_01"
     private val notificationId = 101
-
+    //private val forecastViewModel: ForecastViewModel by viewModels()
 
     override fun doWork(): Result {
         // Download JSON

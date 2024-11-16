@@ -44,10 +44,11 @@
                 android:text = "Включить уведомления">
 
             </CheckBox>
+
             <androidx.recyclerview.widget.RecyclerView
-                android:id = "@+id/recycler_view"
+                android:id="@+id/recycler_view"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="476dp"
                 android:background="@android:color/white">
 
             </androidx.recyclerview.widget.RecyclerView>

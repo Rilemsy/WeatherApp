@@ -23,7 +23,27 @@ class ForecastViewModel(application: Application) : AndroidViewModel(application
         val sampleData = listOf(
             Forecast("Monday", 20.0),
             Forecast("Tue", 25.0),
-            Forecast("Sunday", 15.0)
+            Forecast("Sunday", 15.0),
+            Forecast("Monday", 20.0),
+            Forecast("Tue", 25.0),
+            Forecast("Sunday", 15.0),
+            Forecast("Monday", 20.0),
+            Forecast("Tue", 25.0),
+            Forecast("Sunday", 15.0),
+            Forecast("Monday", 20.0),
+            Forecast("Tue", 25.0),
+            Forecast("Sunday", 15.0),
+            Forecast("Monday", 20.0),
+            Forecast("Tue", 25.0),
+            Forecast("Sunday", 15.0),
+            Forecast("Monday", 20.0),
+            Forecast("Tue", 25.0),
+            Forecast("Sunday", 15.0),
+            Forecast("Monday", 20.0),
+            Forecast("Tue", 25.0),
+            Forecast("Sunday", 15.0),
+            Forecast("Monday", 20.0)
+
         )
         _forecastList.value = sampleData
     }
