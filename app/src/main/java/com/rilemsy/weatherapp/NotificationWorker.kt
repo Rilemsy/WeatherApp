@@ -37,7 +37,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
 //            }
 //        }
 
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&models=best_match"
+        val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&forecast_days=14&models=best_match"
         val json = pullAndStore(url)
 
 
@@ -78,8 +78,18 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                 //val weatherForecast = Gson().fromJson(content, Forecast::class.java)
 
                 val jsonObject = Gson().fromJson(content, JsonObject::class.java)
-                //val forecast = Gson().fromJson(jsonObject["hourly"], Forecast::class.java)
-                val forecastList : List<Forecast> = GsonBuilder().create().fromJson(jsonObject["hourly"], Array<Forecast>::class.java).toList()
+                val hourly = jsonObject["hourly"].asJsonObject
+                val timeArray = hourly["time"].asJsonArray
+                val temperatureArray = hourly["temperature_2m"].asJsonArray
+
+                val forecastList = timeArray.zip(temperatureArray) { time, temp ->
+                    Forecast(
+                        time = time.asString,
+                        temperature_2m = temp.asDouble
+                    )
+                }
+                //val forecastList : List<Forecast> = Gson().fromJson(jsonObject["hourly"], Array<Forecast>::class.java).asList()
+
                 result = "4"
 
                 val db = DatabaseProvider.getDatabase(applicationContext)
@@ -133,7 +143,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         }
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
             .setSmallIcon(R.drawable.ic_launcher_background)
-            .setContentTitle("Example Title")
+            .setContentTitle("Weather Notification")
             .setContentText(output)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .build()
