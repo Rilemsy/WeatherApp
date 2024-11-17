@@ -10,6 +10,7 @@ import androidx.work.WorkerParameters
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import com.rilemsy.weatherapp.DatabaseProvider
 import com.rilemsy.weatherapp.R
 import com.rilemsy.weatherapp.Forecast
 import com.rilemsy.weatherapp.ForecastViewModel
@@ -80,6 +81,11 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                 //val forecast = Gson().fromJson(jsonObject["hourly"], Forecast::class.java)
                 val forecastList : List<Forecast> = GsonBuilder().create().fromJson(jsonObject["hourly"], Array<Forecast>::class.java).toList()
                 result = "4"
+
+                val db = DatabaseProvider.getDatabase(applicationContext)
+                db.forecastDao().clearForecasts()
+                db.forecastDao().insertForecasts(forecastList)
+
 
                 // Print hourly temperatures
                 forecastList.forEachIndexed { index, forecast ->

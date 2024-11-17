@@ -33,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:id="@+id/buttonNotification"
-                android:text = "Just Button">
+                android:text = "Load to viewModel from DB">
 
             </Button>
 
