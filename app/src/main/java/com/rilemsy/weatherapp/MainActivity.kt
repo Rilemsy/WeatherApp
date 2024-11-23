@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         //val dataset = arrayOf("January", "February", "March,","January", "February", "March,","January", "February", "March,","January", "February", "March,")
         //val forecastAdapter = ForecastAdapter(dataset)
 
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m&forecast_days=14&models=best_match"
+        val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,rain&forecast_days=14&models=best_match"
         val json = pullAndStore(url)
         Log.d("myTag", json.toString());
         database = DatabaseProvider.getDatabase(this)
@@ -181,11 +181,13 @@ class MainActivity : AppCompatActivity() {
                 val hourly = jsonObject["hourly"].asJsonObject
                 val timeArray = hourly["time"].asJsonArray
                 val temperatureArray = hourly["temperature_2m"].asJsonArray
+                val rainArray = hourly["rain"].asJsonArray
 
-                val forecastList = timeArray.zip(temperatureArray) { time, temp ->
+                val forecastList = timeArray.mapIndexed { index, timeElement ->
                     Forecast(
-                        time = time.asString,
-                        temperature_2m = temp.asDouble
+                        time = timeElement.asString,
+                        temperature_2m = temperatureArray[index].asDouble,
+                        rain = rainArray[index].asDouble
                     )
                 }
                 //val forecastList : List<Forecast> = Gson().fromJson(jsonObject["hourly"], Array<Forecast>::class.java).asList()
