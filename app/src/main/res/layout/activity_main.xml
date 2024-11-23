@@ -11,6 +11,14 @@
         android:orientation="vertical">
 
             <Button
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id = "@+id/buttonSettings"
+                android:text = "Настройки"
+                android:layout_gravity="right">
+
+            </Button>
+            <Button
                 android:id="@+id/buttonStoreJSON"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"

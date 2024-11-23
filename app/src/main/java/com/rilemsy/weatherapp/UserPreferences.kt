@@ -15,4 +15,8 @@ val Context.dataStore: DataStore<Preferences> by preferencesDataStore(
 
 object DataStoreKeys {
     val NOTIFICATIONS_ENABLED = booleanPreferencesKey("notifications_enabled")
+    val DISPLAY_TEMPERATURE = booleanPreferencesKey("display_temperature")
+    val DISPLAY_RAIN = booleanPreferencesKey("display_rain")
+    val TRACK_TEMPERATURE_DROP = booleanPreferencesKey("track_temperature_drop")
+    val TRACK_RAIN = booleanPreferencesKey("track_rain")
 }

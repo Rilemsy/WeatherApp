@@ -2,6 +2,7 @@ package com.rilemsy.weatherapp
 
 import NotificationWorker
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.View
@@ -9,7 +10,6 @@ import android.widget.Button
 import android.widget.CheckBox
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
-import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -22,7 +22,6 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.rilemsy.weatherapp.databinding.ActivityMainBinding
 import kotlinx.coroutines.CoroutineScope
@@ -31,6 +30,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.net.URL
 import java.util.concurrent.TimeUnit
+
 
 class MainActivity : AppCompatActivity() {
     var result : String =""
@@ -86,13 +86,12 @@ class MainActivity : AppCompatActivity() {
             setNotificationsEnabled()
         }
 
-        val chkBoxNotificationEnabled = findViewById<CheckBox>(R.id.notificationsEnabled)
-        chkBoxNotificationEnabled.setOnClickListener{
-            CoroutineScope(Dispatchers.IO).launch {
-                editNotificationsEnabled(chkBoxNotificationEnabled.isChecked)
-            }
-        }
 
+        val buttonSettings = findViewById<Button>(R.id.buttonSettings)
+        buttonSettings.setOnClickListener{
+            val intent = Intent(this, SettingsActivity::class.java)
+            startActivity(intent)
+        }
     }
 
     suspend fun viewResult(view: View?)
