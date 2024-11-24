@@ -29,4 +29,9 @@ object DataStoreKeys {
     val RAIN_MM = doublePreferencesKey("rain_mm")
     val TEMPERATURE_DROP_DAYS = intPreferencesKey("temperature_drop_days")
     val TEMPERATURE_DROP_HOURS = intPreferencesKey("temperature_drop_hours")
+    val TEMPERATURE_DROP_VALUE = intPreferencesKey("temperature_drop_value")
+
+    val NOTIFICATION_EVENT_TIME_RAIN = stringPreferencesKey("notification_event_time_rain")
+    val NOTIFICATION_EVENT_TIME_TEMPERATURE_DROP = stringPreferencesKey("notification_event_time_temperature_drop")
+
 }

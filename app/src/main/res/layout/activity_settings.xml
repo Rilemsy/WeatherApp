@@ -1,16 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+<LinearLayout
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
+    android:layout_height="wrap_content"
     tools:context=".SettingsActivity"
     android:orientation="vertical"
     android:padding="16dp">
 
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Координаты места прогноза"
+        />
 
+    <EditText
+        android:id="@+id/latitudeEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Введите широту"
+        android:inputType="numberDecimal"/>
+
+    <EditText
+        android:id="@+id/longitudeEdit"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:hint="Введите долготу"
+        android:inputType="numberDecimal"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -88,7 +110,7 @@
             android:id="@+id/rainTrackCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Уведомлять о дожде"></CheckBox>
+            android:text="Уведомлять о дожде" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -100,7 +122,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Время до уведомления: " />
+                android:text="Уведомлять за: " />
 
             <EditText
                 android:id="@+id/rainNotificationDaysEdit"
@@ -122,14 +144,13 @@
                 android:layout_height="wrap_content"
                 android:text="часов" />
         </LinearLayout>
+
         <CheckBox
             android:id="@+id/wat"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Уведомлять о дожде"></CheckBox>
+            android:text="Уведомлять о дожде" />
 
     </LinearLayout>
-
-
-
 </LinearLayout>
+</ScrollView>

@@ -57,7 +57,7 @@ class MainActivity : AppCompatActivity() {
         //val dataset = arrayOf("January", "February", "March,","January", "February", "March,","January", "February", "March,","January", "February", "March,")
         //val forecastAdapter = ForecastAdapter(dataset)
 
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,rain&forecast_days=14&models=best_match"
+        val url = "https://api.open-meteo.com/v1/forecast?latitude=53.52&longitude=21.41&hourly=temperature_2m,rain&forecast_days=14&models=best_match"
         val json = pullAndStore(url)
         Log.d("myTag", json.toString());
         database = DatabaseProvider.getDatabase(this)
