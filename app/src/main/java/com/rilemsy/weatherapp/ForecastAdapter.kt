@@ -79,7 +79,7 @@ class ForecastAdapter(private var forecastList: List<Forecast>) :
             setPadding(8,16,8,16)
         }
         val textViewTemperatureDescription = TextView(forecastViewHolder.itemView.context).apply {
-            text = "Темп."
+            text = "T, C°"
             gravity = Gravity.CENTER_HORIZONTAL
             textSize = 16f
             setPadding(8,16,8,16)

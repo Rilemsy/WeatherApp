@@ -24,18 +24,19 @@ import androidx.work.WorkManager
 import com.google.gson.Gson
 import com.google.gson.JsonObject
 import com.rilemsy.weatherapp.databinding.ActivityMainBinding
+import isOnline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import url
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity() {
     var result : String =""
-    private val CHANNEL_ID = "channel_id_example_01"
-    private val notificationId = 101
     private lateinit var binding: ActivityMainBinding
     private lateinit var forecastAdapter: ForecastAdapter
     private lateinit var forecastViewModel: ForecastViewModel //by viewModels()
@@ -52,15 +53,11 @@ class MainActivity : AppCompatActivity() {
         }
         Log.d("myTag", "MainActivityOnCreate");
 
-        //scheduleWeatherCheck(this)
-
-        //val dataset = arrayOf("January", "February", "March,","January", "February", "March,","January", "February", "March,","January", "February", "March,")
-        //val forecastAdapter = ForecastAdapter(dataset)
-
-        val url = "https://api.open-meteo.com/v1/forecast?latitude=53.52&longitude=21.41&hourly=temperature_2m,rain&forecast_days=14&models=best_match"
-        val json = pullAndStore(url)
-        Log.d("myTag", json.toString());
         database = DatabaseProvider.getDatabase(this)
+        
+        runBlocking {
+            val json = pullAndStore(url)
+        }
 
         val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
         forecastAdapter = ForecastAdapter(emptyList())
@@ -73,19 +70,10 @@ class MainActivity : AppCompatActivity() {
 
         })
 
-
-        //forecastViewModel.updateForecast()
-
         val buttonNotification = findViewById<Button>(R.id.buttonNotification)
         buttonNotification.setOnClickListener{
             forecastViewModel.loadForecasts()
         }
-
-
-        CoroutineScope(Dispatchers.IO).launch {
-            setNotificationsEnabled()
-        }
-
 
         val buttonSettings = findViewById<Button>(R.id.buttonSettings)
         buttonSettings.setOnClickListener{
@@ -97,7 +85,6 @@ class MainActivity : AppCompatActivity() {
     suspend fun viewResult(view: View?)
     {
         val textFetchResult: TextView = findViewById(R.id.textFetchResult)
-//        val notificationsEnabled: Boolean
         dataStore.data.collect{userData ->
             val notificationsEnabled = userData[DataStoreKeys.NOTIFICATIONS_ENABLED] ?: false
             textFetchResult.text = notificationsEnabled.toString()
@@ -110,73 +97,24 @@ class MainActivity : AppCompatActivity() {
         WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.KEEP,workRequest)
     }
 
-    suspend fun editNotificationsEnabled(value: Boolean) {
-        dataStore.edit { userData ->
-            userData[DataStoreKeys.NOTIFICATIONS_ENABLED] = value
-
-            runOnUiThread {
-                if (value)
-                {
-                    scheduleWeatherCheck(this)
-                }
-                else
-                {
-                    WorkManager.getInstance(this).cancelUniqueWork("getForecast")
-                }
-            }
-        }
-    }
-
-    suspend fun setNotificationsEnabled(){
-        dataStore.data.collect { userData ->
-            val notificationsEnabled = userData[DataStoreKeys.NOTIFICATIONS_ENABLED] ?: false
-
-
-            runOnUiThread {
-                if (notificationsEnabled)
-                {
-                    scheduleWeatherCheck(this)
-                }
-                else
-                {
-                    WorkManager.getInstance(this).cancelUniqueWork("getForecast")
-                }
-
-                val view = findViewById<CheckBox>(R.id.notificationsEnabled)
-                view.isChecked = notificationsEnabled
-            }
-        }
-    }
-
-    fun downloadJsonContent(urlString: String, callback: (String?) -> Unit) {
-        val job = CoroutineScope(Dispatchers.IO).launch {
-            val result = try {
+    private suspend fun downloadJsonContent(urlString: String): String? {
+        return withContext(Dispatchers.IO) {
+            try {
                 URL(urlString).openStream().bufferedReader().use { it.readText() }
             } catch (e: Exception) {
                 e.printStackTrace()
                 null
             }
-
-            withContext(Dispatchers.Main) {
-                callback(result)
-            }
         }
     }
 
-    fun pullAndStore(url : String): Boolean
+    suspend fun pullAndStore(url : String): Boolean
     {
-        Log.d("myTag", "Pull");
-
-        result = "1"
-        Log.d("myTag", Thread.currentThread().name)
-        downloadJsonContent(url) { content ->
-            result = "44"
-            if (content != null) {
-                //val weatherForecast = Gson().fromJson(content, Forecast::class.java)
-
-                //val jsonObject = Gson().fromJson(content, JsonObject::class.java)
-                //val forecast = Gson().fromJson(jsonObject["hourly"], Forecast::class.java)
-                //val forecastList : List<Forecast> = GsonBuilder().create().fromJson(jsonObject["hourly"], Array<Forecast>::class.java).toList()
+        if (isOnline(applicationContext))
+        {
+            val content = downloadJsonContent(url)
+            if (content != null)
+            {
                 val jsonObject = Gson().fromJson(content, JsonObject::class.java)
                 val hourly = jsonObject["hourly"].asJsonObject
                 val timeArray = hourly["time"].asJsonArray
@@ -190,38 +128,20 @@ class MainActivity : AppCompatActivity() {
                         rain = rainArray[index].asDouble
                     )
                 }
-                //val forecastList : List<Forecast> = Gson().fromJson(jsonObject["hourly"], Array<Forecast>::class.java).asList()
 
-                result = "4"
+                println(" Before db ${forecastList.size}")
+                database.forecastDao().clearForecasts()
+                database.forecastDao().insertForecasts(forecastList)
+                println(" After db ${forecastList.size}")
 
-                val db = DatabaseProvider.getDatabase(applicationContext)
-                db.forecastDao().clearForecasts()
-                db.forecastDao().insertForecasts(forecastList)
-
-
-                // Print hourly temperatures
                 forecastList.forEachIndexed { index, forecast ->
                     if (index < 3) {
                         result = forecast.temperature_2m.toString()
                         Log.d("myTag", result)
-                        //result += "Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}"
-                        //println("Time: $time, Temperature: ${weatherData.hourly.temperature_2m[index]}")
                     }
                 }
-                result = "5"
-
-            }
-            else {
-                result = "K"
             }
         }
-
-        if (result.isEmpty())
-            return false
-        else
-            return true
-
+        return true
     }
-
-
 }

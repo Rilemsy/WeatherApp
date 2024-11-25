@@ -34,11 +34,6 @@
         android:hint="Введите долготу"
         android:inputType="numberDecimal"/>
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Показывать прогноза на 1-16 (дней)"
-    />
     <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -66,45 +61,64 @@
         android:orientation="vertical"
         android:paddingLeft="10dp">
 
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:paddingLeft="10dp">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Периодичность проверки прогноза: "
-                />
-
-            <EditText
-                android:id="@+id/workerDaysEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="дней," />
-
-            <EditText
-                android:id="@+id/workerHoursEdit"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="часов" />
-
-        </LinearLayout>
-
         <CheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/temperatureDropTrackCheckBox"
             android:text="Уведомлять о падении температуры">
         </CheckBox>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="20dp"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Уведомлять за: "
+                />
+
+            <EditText
+                android:id="@+id/temperatureDropDaysEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:text="1"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="дней" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginLeft="20dp"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Считать падением при разнице не менее: " />
+
+            <EditText
+                android:id="@+id/temperatureDropValueEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:text="5"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="C°" />
+
+        </LinearLayout>
 
         <CheckBox
             android:id="@+id/rainTrackCheckBox"
@@ -127,7 +141,9 @@
             <EditText
                 android:id="@+id/rainNotificationDaysEdit"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:text="1"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -137,7 +153,9 @@
             <EditText
                 android:id="@+id/rainNotificationHoursEdit"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content" />
+                android:layout_height="wrap_content"
+                android:inputType="number"
+                android:text="0"/>
 
             <TextView
                 android:layout_width="wrap_content"
@@ -145,11 +163,26 @@
                 android:text="часов" />
         </LinearLayout>
 
-        <CheckBox
-            android:id="@+id/wat"
-            android:layout_width="wrap_content"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Уведомлять о дожде" />
+            android:orientation="horizontal"
+            android:layout_marginLeft="20dp"
+            >
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Считать дождем с мм/ч : " />
+
+            <EditText
+                android:id="@+id/rainMMEdit"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:inputType="numberDecimal"
+                android:text="0.3"/>
+
+        </LinearLayout>
 
     </LinearLayout>
 </LinearLayout>
