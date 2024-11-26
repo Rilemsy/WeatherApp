@@ -72,8 +72,9 @@ class MainActivity : AppCompatActivity() {
 
             Log.d("myTag", "Forecasts ${forecasts.size}")
             forecastAdapter.updateData(forecasts)
-
         })
+
+        forecastViewModel.loadForecasts()
 
         val buttonNotification = findViewById<Button>(R.id.buttonNotification)
         buttonNotification.setOnClickListener{
@@ -84,6 +85,25 @@ class MainActivity : AppCompatActivity() {
         buttonSettings.setOnClickListener{
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
+        }
+
+        val currentDay = findViewById<TextView>(R.id.forecastDayView)
+        val nextButton = findViewById<Button>(R.id.nextForecastButton)
+        nextButton.setOnClickListener {
+            if (forecastDay < 13) {
+                forecastDay++
+                currentDay.text = forecastDay.toString()
+                forecastAdapter.notifyDataSetChanged()
+            }
+        }
+
+        val prevButton = findViewById<Button>(R.id.prevForecastButton)
+        prevButton.setOnClickListener {
+            if (forecastDay > 0) {
+                forecastDay--
+                currentDay.text = forecastDay.toString()
+                forecastAdapter.notifyDataSetChanged()
+            }
         }
     }
 

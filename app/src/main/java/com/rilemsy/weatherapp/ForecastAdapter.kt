@@ -1,5 +1,7 @@
 package com.rilemsy.weatherapp
 
+import android.content.res.ColorStateList
+import android.content.res.Resources
 import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
@@ -8,6 +10,7 @@ import android.view.ViewGroup
 import android.view.ViewGroup.LayoutParams
 import android.widget.LinearLayout
 import android.widget.TextView
+import androidx.core.graphics.toColorInt
 import androidx.recyclerview.widget.RecyclerView
 
 class ForecastAdapter(private var forecastList: List<Forecast>) :
@@ -84,25 +87,37 @@ class ForecastAdapter(private var forecastList: List<Forecast>) :
         var strTime : String = "";
         var strTemperature : String = "";
 
-            val verticalLayout = LinearLayout(forecastViewHolder.itemView.context)
-            verticalLayout.layoutParams = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-            verticalLayout.orientation = LinearLayout.VERTICAL
-            val textViewTime = TextView(forecastViewHolder.itemView.context).apply {
-                text = forecastList[position + 24 * forecastDay].time.substring(11)
-                textSize = 16f
-                setPadding(8,16,8,16)
-            }
-            //forecastViewHolder.forecastItemLayout.addView(textViewTime)
+        val verticalLayout = LinearLayout(forecastViewHolder.itemView.context)
+        verticalLayout.layoutParams = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
+        verticalLayout.orientation = LinearLayout.VERTICAL
+        val textViewTime = TextView(forecastViewHolder.itemView.context).apply {
+            text = forecastList[position + 24 * forecastDay].time.substring(11)
+            textSize = 16f
+            setPadding(8,16,8,16)
+        }
+        textViewTime.setTextColor("#FFFFFF".toColorInt())
 
-            val textViewTemperature = TextView(forecastViewHolder.itemView.context).apply {
-                text = forecastList[position + 24 * forecastDay].temperature_2m.toString()
-                textSize = 16f
-                setPadding(8,16,8,16)
-            }
-            //forecastViewHolder.forecastItemLayout.addView(textViewTemperature)
-            verticalLayout.addView(textViewTime)
-            verticalLayout.addView(textViewTemperature)
-            forecastViewHolder.forecastLayout.addView(verticalLayout)
+        //forecastViewHolder.forecastItemLayout.addView(textViewTime)
+
+        val textViewTemperature = TextView(forecastViewHolder.itemView.context).apply {
+            text = forecastList[position + 24 * forecastDay].temperature_2m.toString()
+            textSize = 16f
+            setPadding(8,16,8,16)
+        }
+        textViewTemperature.setTextColor("#FFFFFF".toColorInt())
+
+        val textViewRain = TextView(forecastViewHolder.itemView.context).apply {
+            text = forecastList[position + 24 * forecastDay].rain.toString()
+            textSize = 16f
+            setPadding(8,16,8,16)
+        }
+        textViewRain.setTextColor("#FFFFFF".toColorInt())
+
+        //forecastViewHolder.forecastItemLayout.addView(textViewTemperature)
+        verticalLayout.addView(textViewTime)
+        verticalLayout.addView(textViewTemperature)
+        verticalLayout.addView(textViewRain)
+        forecastViewHolder.forecastLayout.addView(verticalLayout)
 
 
 

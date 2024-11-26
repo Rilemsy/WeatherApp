@@ -14,6 +14,8 @@ android:orientation="vertical">
         android:layout_height="wrap_content"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="parent"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
 
         android:background="@drawable/gradient_forecast"
         app:backgroundTint="@null"
@@ -36,11 +38,10 @@ android:orientation="vertical">
     <TextView
         android:id = "@+id/currentTemperatureView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         app:layout_constraintLeft_toLeftOf="parent"
         app:layout_constraintRight_toRightOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="@id/upGuideline"
         android:textSize="150sp"
         android:text="-22"
         android:textColor="@color/white">
@@ -55,11 +56,16 @@ android:orientation="vertical">
         android:textSize="50sp"
         />
 
-
+    <androidx.constraintlayout.widget.Guideline
+        android:id="@+id/upGuideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        app:layout_constraintGuide_percent="0.15" />
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintLeft_toLeftOf="parent"
@@ -67,34 +73,6 @@ android:orientation="vertical">
         android:layout_margin = "26dp"
         android:padding="16dp"
         >
-
-            <LinearLayout
-                android:id = "@+id/parametersLabelsLayout"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                app:layout_constraintBottom_toTopOf="@id/prevForecastButton"
-                app:layout_constraintLeft_toLeftOf="parent"
-                app:layout_constraintRight_toLeftOf="@id/recycler_view"
-                android:orientation="vertical">
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id = "@+id/forecastTemperatureView"
-                    android:text = "C"
-                    android:textColor="@color/white"
-                    />
-
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:id = "@+id/forecastRainView"
-                    android:text = "Rain"
-                    android:textColor="@color/white"
-                    />
-
-            </LinearLayout>
-
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -105,27 +83,75 @@ android:orientation="vertical">
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
-                />
+                app:layout_constraintBottom_toTopOf="@id/forecastInfoLayout"
+                android:layout_marginBottom="16dp"
+            />
 
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recycler_view"
-                android:layout_width="0dp"
+            <androidx.constraintlayout.widget.ConstraintLayout
+                android:id = "@+id/forecastInfoLayout"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-
                 app:layout_constraintTop_toBottomOf="@id/forecastDayView"
-                app:layout_constraintLeft_toRightOf="@+id/parametersLabelsLayout"
+                app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintBottom_toTopOf="@id/prevForecastButton"
-                android:paddingStart="16dp"
-                android:paddingEnd="16dp"
-
-                android:background="@drawable/forecast_display"
                 android:orientation="horizontal"
-                android:nestedScrollingEnabled="true"
-                app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
-            </androidx.recyclerview.widget.RecyclerView>
+                android:background="@drawable/forecast_display"
+                >
 
+                <LinearLayout
+                    android:id = "@+id/parametersLabelsLayout"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    app:layout_constraintBottom_toBottomOf="@id/recycler_view"
+                    app:layout_constraintTop_toTopOf="@id/recycler_view"
+                    app:layout_constraintLeft_toLeftOf="parent"
+                    app:layout_constraintRight_toLeftOf="@id/recycler_view"
+                    android:orientation="vertical"
+                    android:layout_marginLeft="16dp">
+
+                    <TextView
+                        android:id="@+id/forecastTemperatureView"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:layout_gravity="center_horizontal"
+                        android:text="C°"
+                        android:textAlignment="center"
+                        android:textColor="@color/white"
+                        android:textSize="16sp"
+                        android:layout_marginBottom="4dp"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:id = "@+id/forecastRainView"
+                        android:text = "Дождь, мм/ч"
+                        android:textSize="16sp"
+                        android:textColor="@color/white"
+                        android:layout_marginTop="8dp"
+                        android:layout_marginBottom="6dp"
+                        />
+
+                </LinearLayout>
+
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recycler_view"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+
+                    app:layout_constraintTop_toTopOf="parent"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintBottom_toBottomOf="parent"
+                    app:layout_constraintLeft_toRightOf="@id/parametersLabelsLayout"
+                    android:paddingStart="16dp"
+                    android:paddingEnd="16dp"
+
+                    android:orientation="horizontal"
+                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager">
+                </androidx.recyclerview.widget.RecyclerView>
+
+            </androidx.constraintlayout.widget.ConstraintLayout>
 
             <Button
                 android:layout_width="wrap_content"
@@ -136,8 +162,8 @@ android:orientation="vertical">
                 android:id = "@+id/prevForecastButton"
                 app:layout_constraintLeft_toLeftOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/recycler_view"
-
+                app:layout_constraintTop_toBottomOf="@id/forecastInfoLayout"
+                android:layout_marginTop="16dp"
                 />
             <Button
                 android:layout_width="wrap_content"
@@ -145,12 +171,11 @@ android:orientation="vertical">
                 android:background="@drawable/gradient_forecast"
                 app:backgroundTint="@null"
                 android:text="След."
-                android:layout_column="2"
-                android:layout_gravity="right"
                 android:id = "@+id/nextForecastButton"
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/recycler_view"
+                app:layout_constraintTop_toBottomOf="@id/forecastInfoLayout"
+                android:layout_marginTop="16dp"
                 />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </androidx.constraintlayout.widget.ConstraintLayout>
