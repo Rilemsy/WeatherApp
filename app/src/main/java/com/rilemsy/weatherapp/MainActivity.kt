@@ -34,6 +34,7 @@ import url
 import java.net.URL
 import java.util.concurrent.TimeUnit
 
+var forecastDay : Int = 0
 
 class MainActivity : AppCompatActivity() {
     var result : String =""
@@ -41,6 +42,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var forecastAdapter: ForecastAdapter
     private lateinit var forecastViewModel: ForecastViewModel //by viewModels()
     private lateinit var database: ForecastDatabase
+
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -61,11 +64,13 @@ class MainActivity : AppCompatActivity() {
 
         val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
         forecastAdapter = ForecastAdapter(emptyList())
-        recyclerView.layoutManager = LinearLayoutManager(this)
+        recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         recyclerView.adapter = forecastAdapter
-
+        println("Check adapter list")
         forecastViewModel = ViewModelProvider(this,ForecastViewModelFactory(database)).get(ForecastViewModel::class.java)
         forecastViewModel.forecastList.observe(this, Observer { forecasts ->
+
+            Log.d("myTag", "Forecasts ${forecasts.size}")
             forecastAdapter.updateData(forecasts)
 
         })
@@ -84,10 +89,8 @@ class MainActivity : AppCompatActivity() {
 
     suspend fun viewResult(view: View?)
     {
-        val textFetchResult: TextView = findViewById(R.id.textFetchResult)
         dataStore.data.collect{userData ->
             val notificationsEnabled = userData[DataStoreKeys.NOTIFICATIONS_ENABLED] ?: false
-            textFetchResult.text = notificationsEnabled.toString()
         }
         Log.d("myTag", "View");
     }

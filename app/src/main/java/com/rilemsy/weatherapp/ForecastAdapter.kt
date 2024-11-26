@@ -23,10 +23,7 @@ class ForecastAdapter(private var forecastList: List<Forecast>) :
 //        val textView: TextView
 
         //val forecastScroll : HorizontalScrollView = itemView.findViewById(R.id.forecastScroll)
-        val dayTextView : TextView = itemView.findViewById(R.id.forecastDayView)
-        val forecastItemLayout : LinearLayout = itemView.findViewById(R.id.forecastItemLayout)
-        val itemParentLayout : LinearLayout = itemView.findViewById(R.id.itemParentLayout)
-        val fieldsLayout: LinearLayout = itemView.findViewById(R.id.fieldsLayout)
+        val forecastLayout : LinearLayout = itemView.findViewById(R.id.forecastLayout)
         init {
             // Define click listener for the ForecastViewHolder's View
             //textView = view.findViewById(R.id.textView)
@@ -55,24 +52,23 @@ class ForecastAdapter(private var forecastList: List<Forecast>) :
 
 
         //forecastViewHolder.itemParentLayout.removeAllViews()
-        forecastViewHolder.fieldsLayout.removeAllViews()
-        forecastViewHolder.forecastItemLayout.removeAllViews()
+        forecastViewHolder.forecastLayout.removeAllViews()
         //forecastViewHolder.itemParentLayout.removeAllViews()
 
-        val day = forecastList[position*24].time.substring(8,10)
         //val month = forecastList[position*24].time.substring(5,6)
-        forecastViewHolder.dayTextView.apply {
-            text = day
-            textSize = 18f
-            gravity = Gravity.CENTER_VERTICAL
-        }
+//        forecastViewHolder.dayTextView.apply {
+//            text = day
+//            textSize = 18f
+//            gravity = Gravity.CENTER_VERTICAL
+//        }
 
-        println("ListSize:${forecastList.size / 24} Position: $position Day:$day")
+        //println("ListSize:${forecastList.size / 24} Position: $position Day:$day")
 
 
 //        val fieldsLayout = LinearLayout(forecastViewHolder.itemView.context)
 //        fieldsLayout.layoutParams = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
 //        fieldsLayout.orientation = LinearLayout.VERTICAL
+
         val textViewTimeDescription = TextView(forecastViewHolder.itemView.context).apply {
             text = "Время"
             textSize = 16f
@@ -84,35 +80,29 @@ class ForecastAdapter(private var forecastList: List<Forecast>) :
             textSize = 16f
             setPadding(8,16,8,16)
         }
-        forecastViewHolder.fieldsLayout.addView(textViewTimeDescription)
-        forecastViewHolder.fieldsLayout.addView(textViewTemperatureDescription)
 
         var strTime : String = "";
         var strTemperature : String = "";
-        for (i in 0..23){
-//            val item = forecastList[position*24 + i]
-//            strTime += "${item.time.substring(11)}  "
 
             val verticalLayout = LinearLayout(forecastViewHolder.itemView.context)
             verticalLayout.layoutParams = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
             verticalLayout.orientation = LinearLayout.VERTICAL
             val textViewTime = TextView(forecastViewHolder.itemView.context).apply {
-                text = forecastList[position*24 + i].time.substring(11)
+                text = forecastList[position + 24 * forecastDay].time.substring(11)
                 textSize = 16f
                 setPadding(8,16,8,16)
             }
             //forecastViewHolder.forecastItemLayout.addView(textViewTime)
 
             val textViewTemperature = TextView(forecastViewHolder.itemView.context).apply {
-                text = forecastList[position*24 + i].temperature_2m.toString()
+                text = forecastList[position + 24 * forecastDay].temperature_2m.toString()
                 textSize = 16f
                 setPadding(8,16,8,16)
             }
             //forecastViewHolder.forecastItemLayout.addView(textViewTemperature)
             verticalLayout.addView(textViewTime)
             verticalLayout.addView(textViewTemperature)
-            forecastViewHolder.forecastItemLayout.addView(verticalLayout)
-        }
+            forecastViewHolder.forecastLayout.addView(verticalLayout)
 
 
 
@@ -158,7 +148,7 @@ class ForecastAdapter(private var forecastList: List<Forecast>) :
     }
 
     // Return the size of your dataset (invoked by the layout manager)
-    override fun getItemCount() = forecastList.size / 24
+    override fun getItemCount() = if (forecastList.isEmpty()) 0 else 24
 
     fun updateData(newForecastList: List<Forecast>) {
         forecastList = newForecastList
