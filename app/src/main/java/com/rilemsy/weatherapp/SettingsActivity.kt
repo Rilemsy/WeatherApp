@@ -2,23 +2,29 @@ package com.rilemsy.weatherapp
 
 import NotificationWorker
 import android.content.Context
+import android.content.Intent
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
+import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.datastore.preferences.core.doublePreferencesKey
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
+import java.math.BigDecimal
+import java.math.RoundingMode
 import java.util.concurrent.TimeUnit
+
 
 class SettingsActivity : AppCompatActivity() {
 
@@ -27,6 +33,11 @@ class SettingsActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_settings)
+        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
+            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
+            insets
+        }
 
         CoroutineScope(Dispatchers.IO).launch {
             extractSettings()
@@ -34,43 +45,55 @@ class SettingsActivity : AppCompatActivity() {
 
         val chkBoxNotificationEnabled = findViewById<CheckBox>(R.id.notificationPermissionCheckBox)
         chkBoxNotificationEnabled.setOnClickListener{
-            CoroutineScope(Dispatchers.IO).launch {
-                editNotificationsEnabled(chkBoxNotificationEnabled.isChecked)
+            editNotificationsEnabled(chkBoxNotificationEnabled.isChecked)
+        }
+
+        val latitudeEdit = findViewById<EditText>(R.id.latitudeEdit)
+        latitudeEdit.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (s?.toString()?.toDoubleOrNull() == null) return
+                val content = s?.toString()?.toDouble()
+                val value = BigDecimal(content ?: 1000.0).setScale(3, RoundingMode.HALF_UP).toDouble()
+                latitudeEdit.setError(if (value >=-90.0 && value <= 90) null else "Значение должно быть\nмежду -90 и 90")
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+        )
+
+        val longitudeEdit = findViewById<EditText>(R.id.longitudeEdit)
+        longitudeEdit.addTextChangedListener(object : TextWatcher {
+            override fun afterTextChanged(s: Editable?) {
+                if (s?.toString()?.toDoubleOrNull() == null) return
+                val content = s.toString().toDouble()
+                val value = BigDecimal(content ?: 1000.0).setScale(3, RoundingMode.HALF_UP).toDouble()
+                longitudeEdit.error = if (value >=-180.0 && value <= 180) null else "Значение должно быть\nмежду -180 и 180"
+            }
+
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+        }
+        )
+
+        findViewById<Button>(R.id.backButton).setOnClickListener {
+            val intent = Intent(this, MainActivity::class.java)
+            intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT)
+            startActivity(intent)
+        }
+
+        findViewById<Button>(R.id.saveButton).setOnClickListener {
+            runBlocking {
+                saveSettings()
             }
         }
+
     }
 
     override fun onStop() {
         super.onStop()
-
-        val notificationsEnabled = findViewById<CheckBox>(R.id.notificationPermissionCheckBox).isChecked
-        val displayTemperature = findViewById<CheckBox>(R.id.temperatureDisplayCheckBox).isChecked
-        val displayRain = findViewById<CheckBox>(R.id.rainDisplayCheckBox).isChecked
-        val rainNotification = findViewById<CheckBox>(R.id.rainTrackCheckBox).isChecked
-        val rainDays = findViewById<EditText>(R.id.rainNotificationDaysEdit).text.toString().toInt()
-        val rainHours = findViewById<EditText>(R.id.rainNotificationHoursEdit).text.toString().toInt()
-        val rainMM = findViewById<EditText>(R.id.rainMMEdit).text.toString().toDouble()
-        val temperatureNotification = findViewById<CheckBox>(R.id.temperatureDropTrackCheckBox).isChecked
-        val temperatureDropDays = findViewById<EditText>(R.id.temperatureDropDaysEdit).text.toString().toInt()
-        val temperatureDropValue = findViewById<EditText>(R.id.temperatureDropValueEdit).text.toString().toInt()
-        val latitude = findViewById<EditText>(R.id.latitudeEdit).text.toString().toDouble()
-        val longitude = findViewById<EditText>(R.id.longitudeEdit).text.toString().toDouble()
-
-        CoroutineScope(Dispatchers.IO).launch {
-            dataStore.edit { userData ->
-                userData[DataStoreKeys.NOTIFICATIONS_ENABLED] = notificationsEnabled
-                userData[DataStoreKeys.DISPLAY_TEMPERATURE] = displayTemperature
-                userData[DataStoreKeys.DISPLAY_RAIN] = displayRain
-                userData[DataStoreKeys.RAIN_NOTIFICATIONS] = rainNotification
-                userData[DataStoreKeys.RAIN_DAYS] = rainDays
-                userData[DataStoreKeys.RAIN_HOURS] = rainHours
-                userData[DataStoreKeys.RAIN_MM] = rainMM
-                userData[DataStoreKeys.TEMPERATURE_DROP_NOTIFICATIONS] = temperatureNotification
-                userData[DataStoreKeys.TEMPERATURE_DROP_DAYS] = temperatureDropDays
-                userData[DataStoreKeys.TEMPERATURE_DROP_VALUE] = temperatureDropValue
-                userData[DataStoreKeys.LATITUDE] = latitude
-                userData[DataStoreKeys.LONGITUDE] = longitude
-            }
+        runBlocking {
+            saveSettings()
         }
     }
 
@@ -82,12 +105,12 @@ class SettingsActivity : AppCompatActivity() {
             val rainNotifications = userData[DataStoreKeys.RAIN_NOTIFICATIONS] ?: false
             val rainDays = userData[DataStoreKeys.RAIN_DAYS] ?: 1
             val rainHours = userData[DataStoreKeys.RAIN_HOURS] ?: 0
-            val rainMM = userData[DataStoreKeys.RAIN_MM] ?: 0.3
+            val rainMM = userData[DataStoreKeys.RAIN_MM] ?: 1.0
             val temperatureDropNotifications = userData[DataStoreKeys.TEMPERATURE_DROP_NOTIFICATIONS] ?: false
             val temperatureDropDays = userData[DataStoreKeys.TEMPERATURE_DROP_DAYS] ?: 1
             val temperatureDropValue =  userData[DataStoreKeys.TEMPERATURE_DROP_VALUE] ?: 5
-            val latitude = userData[DataStoreKeys.LATITUDE] ?: 0.0
-            val longitude = userData[DataStoreKeys.LONGITUDE] ?: 0.0
+            val latitude = userData[DataStoreKeys.LATITUDE] ?: 0
+            val longitude = userData[DataStoreKeys.LONGITUDE] ?: 0
 
             runOnUiThread {
                 findViewById<CheckBox>(R.id.notificationPermissionCheckBox).isChecked = notificationsEnabled
@@ -106,21 +129,52 @@ class SettingsActivity : AppCompatActivity() {
         }
     }
 
-    private suspend fun editNotificationsEnabled(value: Boolean) {
-        dataStore.edit { userData ->
-            userData[DataStoreKeys.NOTIFICATIONS_ENABLED] = value
-            if (value)
-            {
-                scheduleWeatherCheck(this)
-            }
-            else
-            {
-                WorkManager.getInstance(this).cancelUniqueWork("getForecast")
+
+    private suspend fun saveSettings()
+    {
+        val notificationsEnabled = findViewById<CheckBox>(R.id.notificationPermissionCheckBox).isChecked
+        val displayTemperature = findViewById<CheckBox>(R.id.temperatureDisplayCheckBox).isChecked
+        val displayRain = findViewById<CheckBox>(R.id.rainDisplayCheckBox).isChecked
+        val rainNotification = findViewById<CheckBox>(R.id.rainTrackCheckBox).isChecked
+        val rainDays = findViewById<EditText>(R.id.rainNotificationDaysEdit).text.toString().toInt()
+        val rainHours = findViewById<EditText>(R.id.rainNotificationHoursEdit).text.toString().toInt()
+        val rainMM = findViewById<EditText>(R.id.rainMMEdit).text.toString().toDouble()
+        val temperatureNotification = findViewById<CheckBox>(R.id.temperatureDropTrackCheckBox).isChecked
+        val temperatureDropDays = findViewById<EditText>(R.id.temperatureDropDaysEdit).text.toString().toInt()
+        val temperatureDropValue = findViewById<EditText>(R.id.temperatureDropValueEdit).text.toString().toInt()
+        val latitude = findViewById<EditText>(R.id.latitudeEdit).text?.toString()?.toDouble() ?: 0.0
+        val longitude = findViewById<EditText>(R.id.longitudeEdit).text?.toString()?.toDouble() ?: 0.0
+
+        CoroutineScope(Dispatchers.IO).launch {
+            dataStore.edit { userData ->
+                userData[DataStoreKeys.NOTIFICATIONS_ENABLED] = notificationsEnabled
+                userData[DataStoreKeys.DISPLAY_TEMPERATURE] = displayTemperature
+                userData[DataStoreKeys.DISPLAY_RAIN] = displayRain
+                userData[DataStoreKeys.RAIN_NOTIFICATIONS] = rainNotification
+                userData[DataStoreKeys.RAIN_DAYS] = rainDays
+                userData[DataStoreKeys.RAIN_HOURS] = if (rainHours == 0 && rainDays == 0) 1 else rainHours
+                userData[DataStoreKeys.RAIN_MM] = rainMM
+                userData[DataStoreKeys.TEMPERATURE_DROP_NOTIFICATIONS] = temperatureNotification
+                userData[DataStoreKeys.TEMPERATURE_DROP_DAYS] = temperatureDropDays
+                userData[DataStoreKeys.TEMPERATURE_DROP_VALUE] = temperatureDropValue
+                userData[DataStoreKeys.LATITUDE] = latitude
+                userData[DataStoreKeys.LONGITUDE] = longitude
             }
         }
     }
 
-    private suspend fun scheduleWeatherCheck(context: Context){
+    private fun editNotificationsEnabled(value: Boolean) {
+        if (value)
+        {
+            scheduleWeatherCheck(this)
+        }
+        else
+        {
+            WorkManager.getInstance(this).cancelUniqueWork("getForecast")
+        }
+    }
+
+    private fun scheduleWeatherCheck(context: Context){
         val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(15, TimeUnit.MINUTES).build()
         WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.REPLACE,workRequest)
     }

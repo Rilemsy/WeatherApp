@@ -1,23 +1,57 @@
 <?xml version="1.0" encoding="utf-8"?>
 <ScrollView
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
-<LinearLayout
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/gradient_back"
+    >
+
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     tools:context=".SettingsActivity"
     android:orientation="vertical"
     android:padding="16dp">
 
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id = "@+id/backButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/saveButton"
+            android:background="@drawable/gradient_forecast"
+            app:backgroundTint="@null"
+            android:text="Вернуться"
+            android:textColor="#000000"/>
+
+        <Button
+            android:id = "@+id/saveButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            android:background="@drawable/gradient_forecast"
+            app:backgroundTint="@null"
+            android:text="Сохранить\nизменения"
+            android:textColor="#000000"/>
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Координаты места прогноза"
+        android:textSize="16sp"
+        android:textColor="@color/white"
         />
 
     <EditText
@@ -25,59 +59,70 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:hint="Введите широту"
-        android:inputType="numberDecimal"/>
+        android:layout_marginLeft="32dp"
+        android:inputType="numberSigned|numberDecimal"/>
 
     <EditText
         android:id="@+id/longitudeEdit"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:hint="Введите долготу"
-        android:inputType="numberDecimal"/>
+        android:layout_marginLeft="32dp"
+        android:inputType="numberSigned|numberDecimal"/>
 
-    <CheckBox
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+    <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/temperatureDisplayCheckBox"
-        android:text="Показывать в прогнозе температуру">
-    </CheckBox>
-    <CheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/rainDisplayCheckBox"
-        android:text="Показывать в прогнозе дождь">
-    </CheckBox>
+        android:text="Показывать в прогнозе температуру"
+        android:textColor="@color/white"
+        app:buttonTint="@color/white"
+        />
 
-    <CheckBox
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/rainDisplayCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Показывать в прогнозе дождь"
+        android:textColor="@color/white"
+        app:buttonTint="@color/white"/>
+
+    <androidx.appcompat.widget.AppCompatCheckBox
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id = "@+id/notificationPermissionCheckBox"
-        android:text = "Включить уведомления">
-    </CheckBox>
+        android:text = "Включить уведомления"
+        android:textColor="@color/white"
+        app:buttonTint="@color/white">
+    </androidx.appcompat.widget.AppCompatCheckBox>
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id = "@+id/notificationLayout"
         android:orientation="vertical"
-        android:paddingLeft="10dp">
+        android:paddingLeft="24dp">
 
-        <CheckBox
+        <androidx.appcompat.widget.AppCompatCheckBox
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:id="@+id/temperatureDropTrackCheckBox"
+            app:buttonTint="@color/white"
+            android:textColor="@color/white"
             android:text="Уведомлять о падении температуры">
-        </CheckBox>
+        </androidx.appcompat.widget.AppCompatCheckBox>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="32dp"
             android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Уведомлять за: "
+                android:textColor="@color/white"
                 />
 
             <EditText
@@ -85,11 +130,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="number"
+                android:textColor="@color/white"
                 android:text="1"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/white"
                 android:text="дней" />
 
         </LinearLayout>
@@ -98,56 +145,64 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="32dp"
             >
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Считать падением при разнице не менее: " />
+                android:text="Считать падением при разнице не менее: "
+                android:textColor="@color/white"/>
 
             <EditText
                 android:id="@+id/temperatureDropValueEdit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="number"
+                android:textColor="@color/white"
                 android:text="5"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/white"
                 android:text="C°" />
 
         </LinearLayout>
 
-        <CheckBox
+        <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/rainTrackCheckBox"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Уведомлять о дожде" />
+            android:text="Уведомлять о дожде"
+            android:textColor="@color/white"
+            app:buttonTint="@color/white"/>
 
         <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="32dp"
             android:orientation="horizontal"
             android:id = "@+id/rainTimeContainer">
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Уведомлять за: " />
+                android:text="Уведомлять за: "
+                android:textColor="@color/white"/>
 
             <EditText
                 android:id="@+id/rainNotificationDaysEdit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="number"
+                android:textColor="@color/white"
                 android:text="1"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/white"
                 android:text="дней," />
 
             <EditText
@@ -155,11 +210,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="number"
+                android:textColor="@color/white"
                 android:text="0"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:textColor="@color/white"
                 android:text="часов" />
         </LinearLayout>
 
@@ -167,20 +224,22 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:layout_marginLeft="20dp"
+            android:layout_marginLeft="32dp"
             >
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Считать дождем с мм/ч : " />
+                android:text="Считать дождем с мм/ч : "
+                android:textColor="@color/white"/>
 
             <EditText
                 android:id="@+id/rainMMEdit"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:inputType="numberDecimal"
-                android:text="0.3"/>
+                android:textColor="@color/white"
+                android:text="1.0"/>
 
         </LinearLayout>
 

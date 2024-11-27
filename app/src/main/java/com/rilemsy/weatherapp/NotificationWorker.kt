@@ -74,13 +74,22 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
     private var preferencesMap : MutableMap<String, Any?> = mutableMapOf()
 
     override suspend fun doWork(): Result {
+        Log.d("myTag", "Worker Work");
+
         println("Before")
         runBlocking {
-            val json = pullAndStore(url)
             preferencesMap = collectPreferences().toMutableMap()
+            val match = ("(?<=latitude=)[0-9.]+").toRegex().find(url)
+            println("Match ${match?.value.toString()} | ${(preferencesMap["latitude"] as Double).toString()}")
+            url = url.replace("(?<=latitude=)[0-9.]+".toRegex(),(preferencesMap["latitude"] as Double).toString())
+            url = url.replace("(?<=longitude=)[0-9.]+".toRegex(),(preferencesMap["longitude"] as Double).toString())
+            val json = pullAndStore(url)
             println("Middle ${forecastList.size}")
         }
-        println("After")
+        println("After $url")
+        val eventMessage = "${12}.${34} будет падение температуры"
+        sendNotification(eventMessage, NotificationEvent.TEMPERATURE_DROP)
+
         checkTimeForNotifications()
 
         return Result.success()
@@ -173,34 +182,31 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         var averageTemperatureToday : Double = 0.0
         val timeNow = LocalDateTime.parse(LocalDateTime.now().toString().replace('T',' ').dropLast(7), formatter)  //.format(formatter)
 
+
+
         var notificationRainTime = preferencesMap["notification_event_time_rain"] as String
         println("notification_event_time_rain $notificationRainTime")
         var notificationRainLocalDateTime : LocalDateTime = timeNow.plusYears(2)
         if (!notificationRainTime.isNullOrEmpty())
             notificationRainLocalDateTime = LocalDateTime.parse(notificationRainTime.replace('T',' '),formatter)
 
-        var hoursDifference = Duration.between(timeNow, notificationRainLocalDateTime).toHours()
-        if (!(preferencesMap["rain_notification_sent"] as Boolean) && hoursDifference >=0 && hoursDifference <= (preferencesMap["rain_days"] as Int)*24 + preferencesMap["rain_hours"] as Int )
-        {
-            val eventMessage = "${notificationRainLocalDateTime.dayOfMonth}.${notificationRainLocalDateTime.month.value} в ${notificationRainLocalDateTime.hour}.00 будет дождь"
-            sendNotification(eventMessage, NotificationEvent.RAIN)
-            val dataStore = applicationContext.dataStore
-            dataStore.edit { userData ->
-                userData[DataStoreKeys.RAIN_NOTIFICATION_SENT] = true
-            }
-        }
-        else if (timeNow.isAfter(notificationRainLocalDateTime) && preferencesMap["rain_notifications"] as Boolean || notificationRainTime.isNullOrEmpty())
+        if (preferencesMap["rain_notifications"] as Boolean && (timeNow.isAfter(notificationRainLocalDateTime) || notificationRainTime.isNullOrEmpty()))
         {
             for (forecast in forecastList)
             {
                 val forecastTime = LocalDateTime.parse(forecast.time.replace('T',' '),formatter)
-                if (forecast.rain!! >= preferencesMap["rain_mm"] as Double && (notificationRainTime.isNullOrEmpty() && forecastTime.isAfter(timeNow) || forecastTime.dayOfMonth != timeNow.dayOfMonth)) {
+                var hoursDifference = Duration.between(timeNow, forecastTime).toHours()
+                if (forecast.rain!! >= preferencesMap["rain_mm"] as Double &&
+                    (notificationRainTime.isNullOrEmpty() || (!notificationRainTime.isNullOrEmpty() && forecastTime.dayOfMonth != notificationRainLocalDateTime.dayOfMonth))
+                    && hoursDifference >=0 && hoursDifference <= (preferencesMap["rain_days"] as Int)*24 + preferencesMap["rain_hours"] as Int)
+                {
                     preferencesMap["notification_event_time_rain"] = forecast.time
                     val dataStore = applicationContext.dataStore
                     dataStore.edit { userData ->
                         userData[DataStoreKeys.NOTIFICATION_EVENT_TIME_RAIN] = forecast.time
-                        userData[DataStoreKeys.RAIN_NOTIFICATION_SENT] = false
                     }
+                    val eventMessage = "${forecastTime.dayOfMonth}.${forecastTime.month.value} в ${forecastTime.hour}.00 будет дождь"
+                    sendNotification(eventMessage, NotificationEvent.RAIN)
                     break
                 }
             }
@@ -212,17 +218,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         if (!notificationTemperatureDropTime.isNullOrEmpty())
             notificationTemperatureDropLocalDateTime = LocalDateTime.parse(notificationTemperatureDropTime.replace('T',' '),formatter)
 
-        hoursDifference = Duration.between(timeNow, notificationTemperatureDropLocalDateTime).toHours()
-        if (!(preferencesMap["temperature_drop_notification_sent"] as Boolean) && hoursDifference >=0 && hoursDifference <= (preferencesMap["temperature_drop_days"] as Int)*24)
-        {
-            val eventMessage = "${notificationTemperatureDropLocalDateTime.dayOfMonth}.${notificationTemperatureDropLocalDateTime.month.value} будет падение температуры"
-            sendNotification(eventMessage, NotificationEvent.TEMPERATURE_DROP)
-            val dataStore = applicationContext.dataStore
-            dataStore.edit { userData ->
-                userData[DataStoreKeys.TEMPERATURE_DROP_NOTIFICATION_SENT] = true
-            }
-        }
-        else if (timeNow.isAfter(notificationTemperatureDropLocalDateTime) && preferencesMap["temperature_drop_notifications"] as Boolean || notificationTemperatureDropTime.isNullOrEmpty())
+        if (preferencesMap["temperature_drop_notifications"] as Boolean && (timeNow.isAfter(notificationTemperatureDropLocalDateTime) || notificationTemperatureDropTime.isNullOrEmpty()))
         {
             var index : Int = 0
             for (forecast in forecastList)
@@ -233,15 +229,19 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                 {
                     val averageTemperature = temperatureSum/24
                     println("Avrg $averageTemperature $averageTemperatureToday")
-                    if (averageTemperature - averageTemperatureToday >= -(preferencesMap["temperature_drop_value"] as Int))
+                    val forecastTime = LocalDateTime.parse(forecast.time.replace('T',' '),formatter)
+                    var hoursDifference = Duration.between(timeNow, forecastTime).toHours()
+                    if (averageTemperature - averageTemperatureToday >= -(preferencesMap["temperature_drop_value"] as Int)
+                        &&  hoursDifference >=0 && hoursDifference <= (preferencesMap["temperature_drop_days"] as Int)*24)
                     {
-                        val editedForecastTime = forecast.time.replaceRange(11,13,"12") // middle of day
+                        val editedForecastTime = forecast.time.replaceRange(11,13,"00") // start of day
                         preferencesMap["notification_event_time_temperature_drop"] = editedForecastTime
                         val dataStore = applicationContext.dataStore
                         dataStore.edit { userData ->
                             userData[DataStoreKeys.NOTIFICATION_EVENT_TIME_TEMPERATURE_DROP] = editedForecastTime
-                            userData[DataStoreKeys.TEMPERATURE_DROP_NOTIFICATION_SENT] = false
                         }
+                        val eventMessage = "${forecastTime.dayOfMonth}.${forecastTime.month.value} будет падение температуры"
+                        sendNotification(eventMessage, NotificationEvent.TEMPERATURE_DROP)
                         break
                     }
                     temperatureSum = 0.0

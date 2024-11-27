@@ -27,12 +27,16 @@ import com.rilemsy.weatherapp.databinding.ActivityMainBinding
 import isOnline
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
 import url
 import java.net.URL
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.concurrent.TimeUnit
+import kotlin.math.roundToInt
 
 var forecastDay : Int = 0
 
@@ -42,25 +46,38 @@ class MainActivity : AppCompatActivity() {
     private lateinit var forecastAdapter: ForecastAdapter
     private lateinit var forecastViewModel: ForecastViewModel //by viewModels()
     private lateinit var database: ForecastDatabase
-
-
+    private var forecastList : List<Forecast> = emptyList()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
+
+        val monthList = listOf("января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря")
+
         Log.d("myTag", "MainActivityOnCreate");
 
         database = DatabaseProvider.getDatabase(this)
-        
+
         runBlocking {
+            println("0st runBlock Main $url")
+            val userData = dataStore.data.first()
+            url = url.replace("(?<=latitude=)[0-9\\.]+".toRegex(),(userData[DataStoreKeys.LATITUDE]).toString())
+            url = url.replace("(?<=longitude=)[0-9\\.]+".toRegex(),(userData[DataStoreKeys.LONGITUDE]).toString())
+            println("1st runBlock Main $url")
+        }
+
+        runBlocking {
+
             val json = pullAndStore(url)
         }
+        println("After Main $url")
 
         val recyclerView: RecyclerView = findViewById(R.id.recycler_view)
         forecastAdapter = ForecastAdapter(emptyList())
@@ -68,56 +85,48 @@ class MainActivity : AppCompatActivity() {
         recyclerView.adapter = forecastAdapter
         println("Check adapter list")
         forecastViewModel = ViewModelProvider(this,ForecastViewModelFactory(database)).get(ForecastViewModel::class.java)
+
+        val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+
+        //.format(formatter)
+
         forecastViewModel.forecastList.observe(this, Observer { forecasts ->
 
             Log.d("myTag", "Forecasts ${forecasts.size}")
+            forecastList = forecasts
+            val strTimeNow = LocalDateTime.now().toString().replace('T',' ').dropLast(9) + "00"
+            val timeNow = LocalDateTime.parse(strTimeNow, formatter)
+            binding.currentTemperatureView.text = forecastList.find { forecast -> forecast.time.replace('T',' ') == strTimeNow }?.temperature_2m?.roundToInt().toString()
+            binding.forecastDayView.text = "${timeNow.dayOfMonth} ${monthList[timeNow.month.ordinal]}"
             forecastAdapter.updateData(forecasts)
         })
 
         forecastViewModel.loadForecasts()
 
-        val buttonNotification = findViewById<Button>(R.id.buttonNotification)
-        buttonNotification.setOnClickListener{
-            forecastViewModel.loadForecasts()
-        }
 
-        val buttonSettings = findViewById<Button>(R.id.buttonSettings)
-        buttonSettings.setOnClickListener{
+
+        binding.buttonSettings.setOnClickListener{
             val intent = Intent(this, SettingsActivity::class.java)
             startActivity(intent)
         }
 
-        val currentDay = findViewById<TextView>(R.id.forecastDayView)
-        val nextButton = findViewById<Button>(R.id.nextForecastButton)
-        nextButton.setOnClickListener {
+        binding.nextForecastButton.setOnClickListener {
             if (forecastDay < 13) {
                 forecastDay++
-                currentDay.text = forecastDay.toString()
+                val time = LocalDateTime.parse(forecastList[forecastDay*24].time.replace('T',' '),formatter)
+                binding.forecastDayView.text = "${time.dayOfMonth} ${monthList[time.month.ordinal]}"
                 forecastAdapter.notifyDataSetChanged()
             }
         }
 
-        val prevButton = findViewById<Button>(R.id.prevForecastButton)
-        prevButton.setOnClickListener {
+        binding.prevForecastButton.setOnClickListener {
             if (forecastDay > 0) {
                 forecastDay--
-                currentDay.text = forecastDay.toString()
+                val time = LocalDateTime.parse(forecastList[forecastDay*24].time.replace('T',' '),formatter)
+                binding.forecastDayView.text = "${time.dayOfMonth} ${monthList[time.month.ordinal]}"
                 forecastAdapter.notifyDataSetChanged()
             }
         }
-    }
-
-    suspend fun viewResult(view: View?)
-    {
-        dataStore.data.collect{userData ->
-            val notificationsEnabled = userData[DataStoreKeys.NOTIFICATIONS_ENABLED] ?: false
-        }
-        Log.d("myTag", "View");
-    }
-
-    private fun scheduleWeatherCheck(context: Context){
-        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(15, TimeUnit.MINUTES).build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.KEEP,workRequest)
     }
 
     private suspend fun downloadJsonContent(urlString: String): String? {

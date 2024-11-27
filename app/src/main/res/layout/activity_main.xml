@@ -24,17 +24,6 @@ android:orientation="vertical">
 
     </Button>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/buttonNotification"
-        android:text = "Load to viewModel from DB"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintLeft_toLeftOf="parent"
-        >
-
-    </Button>
-
     <TextView
         android:id = "@+id/currentTemperatureView"
         android:layout_width="wrap_content"
@@ -79,6 +68,7 @@ android:orientation="vertical">
                 android:id = "@+id/forecastDayView"
                 android:text = "День"
                 android:textColor="@color/white"
+                android:textSize="16sp"
 
                 app:layout_constraintTop_toTopOf="parent"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -96,15 +86,14 @@ android:orientation="vertical">
                 app:layout_constraintRight_toRightOf="parent"
                 app:layout_constraintBottom_toTopOf="@id/prevForecastButton"
                 android:orientation="horizontal"
-                android:background="@drawable/forecast_display"
+                android:background="@drawable/bottom_layout"
                 >
 
                 <LinearLayout
                     android:id = "@+id/parametersLabelsLayout"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    app:layout_constraintBottom_toBottomOf="@id/recycler_view"
-                    app:layout_constraintTop_toTopOf="@id/recycler_view"
+                    app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toLeftOf="parent"
                     app:layout_constraintRight_toLeftOf="@id/recycler_view"
                     android:orientation="vertical"
@@ -140,7 +129,6 @@ android:orientation="vertical">
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
 
-                    app:layout_constraintTop_toTopOf="parent"
                     app:layout_constraintRight_toRightOf="parent"
                     app:layout_constraintBottom_toBottomOf="parent"
                     app:layout_constraintLeft_toRightOf="@id/parametersLabelsLayout"
