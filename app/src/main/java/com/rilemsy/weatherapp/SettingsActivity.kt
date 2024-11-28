@@ -121,15 +121,12 @@ class SettingsActivity : AppCompatActivity() {
                 userData[DataStoreKeys.TEMPERATURE_DROP_NOTIFICATIONS] ?: false
             val temperatureDropDays = userData[DataStoreKeys.TEMPERATURE_DROP_DAYS] ?: 1
             val temperatureDropValue = userData[DataStoreKeys.TEMPERATURE_DROP_VALUE] ?: 5
-            val latitude = userData[DataStoreKeys.LATITUDE] ?: 0
-            val longitude = userData[DataStoreKeys.LONGITUDE] ?: 0
+            val latitude = userData[DataStoreKeys.LATITUDE] ?: 0.0
+            val longitude = userData[DataStoreKeys.LONGITUDE] ?: 0.0
 
             runOnUiThread {
                 findViewById<CheckBox>(R.id.notificationPermissionCheckBox).isChecked =
                     notificationsEnabled
-                findViewById<CheckBox>(R.id.temperatureDisplayCheckBox).isChecked =
-                    temperatureDisplay
-                findViewById<CheckBox>(R.id.rainDisplayCheckBox).isChecked = rainDisplay
                 findViewById<CheckBox>(R.id.rainTrackCheckBox).isChecked = rainNotifications
                 findViewById<EditText>(R.id.rainNotificationDaysEdit).setText("$rainDays")
                 findViewById<EditText>(R.id.rainNotificationHoursEdit).setText("$rainHours")
@@ -147,8 +144,6 @@ class SettingsActivity : AppCompatActivity() {
     private suspend fun saveSettings() {
         val notificationsEnabled =
             findViewById<CheckBox>(R.id.notificationPermissionCheckBox).isChecked
-        val displayTemperature = findViewById<CheckBox>(R.id.temperatureDisplayCheckBox).isChecked
-        val displayRain = findViewById<CheckBox>(R.id.rainDisplayCheckBox).isChecked
         val rainNotification = findViewById<CheckBox>(R.id.rainTrackCheckBox).isChecked
         val rainDays =
             findViewById<EditText>(R.id.rainNotificationDaysEdit).text.toString().toIntOrNull() ?: 0
@@ -171,16 +166,14 @@ class SettingsActivity : AppCompatActivity() {
             CoroutineScope(Dispatchers.IO).launch {
                 dataStore.edit { userData ->
                     userData[DataStoreKeys.NOTIFICATIONS_ENABLED] = notificationsEnabled
-                    userData[DataStoreKeys.DISPLAY_TEMPERATURE] = displayTemperature
-                    userData[DataStoreKeys.DISPLAY_RAIN] = displayRain
                     userData[DataStoreKeys.RAIN_NOTIFICATIONS] = rainNotification
                     userData[DataStoreKeys.RAIN_DAYS] = rainDays
                     userData[DataStoreKeys.RAIN_HOURS] =
                         if (rainHours == 0 && rainDays == 0) 1 else rainHours
-                    userData[DataStoreKeys.RAIN_MM] = rainMM
+                    userData[DataStoreKeys.RAIN_MM] = if (rainMM <= 0) 0.1 else rainMM
                     userData[DataStoreKeys.TEMPERATURE_DROP_NOTIFICATIONS] = temperatureNotification
-                    userData[DataStoreKeys.TEMPERATURE_DROP_DAYS] = temperatureDropDays
-                    userData[DataStoreKeys.TEMPERATURE_DROP_VALUE] = temperatureDropValue
+                    userData[DataStoreKeys.TEMPERATURE_DROP_DAYS] = if (temperatureDropDays <= 0) 1 else temperatureDropDays
+                    userData[DataStoreKeys.TEMPERATURE_DROP_VALUE] = if (temperatureDropValue <=0) 1 else temperatureDropValue
                     userData[DataStoreKeys.LATITUDE] = latitude
                     userData[DataStoreKeys.LONGITUDE] = longitude
                 }

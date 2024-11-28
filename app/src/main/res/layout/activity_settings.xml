@@ -19,7 +19,7 @@
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp">
+        android:layout_marginBottom="32dp">
 
         <Button
             android:id = "@+id/backButton"
@@ -69,22 +69,6 @@
         android:hint="Введите долготу"
         android:layout_marginLeft="32dp"
         android:inputType="numberSigned|numberDecimal"/>
-
-    <androidx.appcompat.widget.AppCompatCheckBox
-        android:id="@+id/temperatureDisplayCheckBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Показывать в прогнозе температуру"
-        android:textColor="@color/white"
-        app:buttonTint="@color/white" />
-
-    <androidx.appcompat.widget.AppCompatCheckBox
-        android:id="@+id/rainDisplayCheckBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Показывать в прогнозе дождь"
-        android:textColor="@color/white"
-        app:buttonTint="@color/white" />
 
     <androidx.appcompat.widget.AppCompatCheckBox
         android:layout_width="wrap_content"

@@ -119,47 +119,6 @@ class ForecastAdapter(private var forecastList: List<Forecast>) :
         verticalLayout.addView(textViewRain)
         forecastViewHolder.forecastLayout.addView(verticalLayout)
 
-
-
-//        forecastList.forEach{ forecast ->
-//
-//            val verticalLayout = LinearLayout(forecastViewHolder.itemView.context)
-//            verticalLayout.layoutParams = LinearLayout.LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT)
-//            verticalLayout.orientation = LinearLayout.VERTICAL
-//            val textViewTime = TextView(forecastViewHolder.itemView.context).apply {
-//                text = forecastItem.time
-//                textSize = 16f
-//                setPadding(8,16,8,16)
-//            }
-//            //forecastViewHolder.forecastItemLayout.addView(textViewTime)
-//
-//            val textViewTemperature = TextView(forecastViewHolder.itemView.context).apply {
-//                text = forecastItem.temperature_2m.toString()
-//                textSize = 16f
-//                setPadding(8,16,8,16)
-//            }
-//            //forecastViewHolder.forecastItemLayout.addView(textViewTemperature)
-//            verticalLayout.addView(textViewTime)
-//            verticalLayout.addView(textViewTemperature)
-//            forecastViewHolder.forecastItemLayout.addView(verticalLayout)
-//
-//        }
-
-
-//        val textViewTime = TextView(forecastViewHolder.itemView.context).apply {
-//            text = forecastItem.time
-//            textSize = 16f
-//            setPadding(8,4,8,4)
-//        }
-//        forecastViewHolder.forecastItemLayout.addView(textViewTime)
-//
-//        val textViewTemperature = TextView(forecastViewHolder.itemView.context).apply {
-//            text = forecastItem.temperature_2m.toString()
-//            textSize = 16f
-//            setPadding(8,4,8,4)
-//        }
-//        forecastViewHolder.forecastItemLayout.addView(textViewTemperature)
-
     }
 
     // Return the size of your dataset (invoked by the layout manager)

@@ -72,6 +72,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
     private val db : ForecastDatabase = DatabaseProvider.getDatabase(applicationContext)
     private var forecastList : List<Forecast> = emptyList()
     private var preferencesMap : MutableMap<String, Any?> = mutableMapOf()
+    val monthList = listOf("января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря")
 
     override suspend fun doWork(): Result {
         Log.d("myTag", "Worker Work");
@@ -81,14 +82,14 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
             preferencesMap = collectPreferences().toMutableMap()
             val match = ("(?<=latitude=)[0-9.]+").toRegex().find(url)
             println("Match ${match?.value.toString()} | ${(preferencesMap["latitude"] as Double).toString()}")
-            url = url.replace("(?<=latitude=)[\\-0-9.]+".toRegex(),(preferencesMap["latitude"] as Double).toString())
-            url = url.replace("(?<=longitude=)[\\-0-9.]+".toRegex(),(preferencesMap["longitude"] as Double).toString())
+            url = url.replace("(?<=latitude=)[\\-0-9.a-z]+".toRegex(),(preferencesMap["latitude"] as Double).toString())
+            url = url.replace("(?<=longitude=)[\\-0-9.a-z]+".toRegex(),(preferencesMap["longitude"] as Double).toString())
             val json = pullAndStore(url)
             println("Middle ${forecastList.size}")
         }
         println("After $url")
-        val eventMessage = "${12}.${34} будет падение температуры"
-        sendNotification(eventMessage, NotificationEvent.TEMPERATURE_DROP)
+//        val eventMessage = "${12}.${34} будет падение температуры"
+//        sendNotification(eventMessage, NotificationEvent.TEMPERATURE_DROP)
 
         checkTimeForNotifications()
 
@@ -202,7 +203,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                     dataStore.edit { userData ->
                         userData[DataStoreKeys.NOTIFICATION_EVENT_TIME_RAIN] = forecast.time
                     }
-                    val eventMessage = "${forecastTime.dayOfMonth}.${forecastTime.month.value} в ${forecastTime.hour}.00 будет дождь"
+                    val eventMessage = "${forecastTime.dayOfMonth} ${monthList[forecastTime.month.value-1]} в ${forecastTime.hour}.00 будет дождь"
                     sendNotification(eventMessage, NotificationEvent.RAIN)
                     break
                 }
@@ -226,9 +227,11 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                 {
                     val averageTemperature = temperatureSum/24
                     println("Avrg $averageTemperature $averageTemperatureToday")
-                    val forecastTime = LocalDateTime.parse(forecast.time.replace('T',' '),formatter)
+                    val forecastTime = LocalDateTime.parse(forecast.time.replace('T',' ').replaceRange(11,13,"00"),formatter)
                     var hoursDifference = Duration.between(timeNow, forecastTime).toHours()
-                    if (averageTemperature - averageTemperatureToday >= -(preferencesMap["temperature_drop_value"] as Int)
+                    println("forecasts hourdifference $hoursDifference")
+                    println("Check avg calc ${averageTemperatureToday - averageTemperature}   ${preferencesMap["temperature_drop_value"] as Int}")
+                    if (averageTemperatureToday - averageTemperature >= preferencesMap["temperature_drop_value"] as Int
                         &&  hoursDifference >=0 && hoursDifference <= (preferencesMap["temperature_drop_days"] as Int)*24)
                     {
                         val editedForecastTime = forecast.time.replaceRange(11,13,"00") // start of day
@@ -237,7 +240,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                         dataStore.edit { userData ->
                             userData[DataStoreKeys.NOTIFICATION_EVENT_TIME_TEMPERATURE_DROP] = editedForecastTime
                         }
-                        val eventMessage = "${forecastTime.dayOfMonth}.${forecastTime.month.value} будет падение температуры"
+                        val eventMessage = "${forecastTime.dayOfMonth} ${monthList[forecastTime.month.value-1]} будет падение температуры"
                         sendNotification(eventMessage, NotificationEvent.TEMPERATURE_DROP)
                         break
                     }
@@ -260,7 +263,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
             notificationManager.createNotificationChannel(channel)
         }
         val builder = NotificationCompat.Builder(applicationContext, CHANNEL_ID)
-            .setSmallIcon(R.drawable.ic_launcher_background)
+            .setSmallIcon(R.drawable.ic_launcher_foreground)
             .setContentText(text)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .build()

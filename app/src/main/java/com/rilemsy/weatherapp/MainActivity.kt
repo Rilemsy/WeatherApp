@@ -68,13 +68,9 @@ class MainActivity : AppCompatActivity() {
         runBlocking {
             println("0st runBlock Main $url")
             val userData = dataStore.data.first()
-            url = url.replace("(?<=latitude=)[\\-0-9.]+".toRegex(),(userData[DataStoreKeys.LATITUDE]).toString())
-            url = url.replace("(?<=longitude=)[\\-0-9.]+".toRegex(),(userData[DataStoreKeys.LONGITUDE]).toString())
+            url = url.replace("(?<=latitude=)[\\-0-9.a-z]+".toRegex(),((userData[DataStoreKeys.LATITUDE])?.toString() ?: "0.0"))
+            url = url.replace("(?<=longitude=)[\\-0-9.a-z]+".toRegex(),((userData[DataStoreKeys.LONGITUDE])?.toString() ?: "0.0"))
             println("1st runBlock Main $url")
-        }
-
-        runBlocking {
-
             val json = pullAndStore(url)
         }
         println("After Main $url")
@@ -95,6 +91,7 @@ class MainActivity : AppCompatActivity() {
             Log.d("myTag", "Forecasts ${forecasts.size}")
             forecastList = forecasts
             val strTimeNow = LocalDateTime.now().toString().replace('T',' ').dropLast(9) + "00"
+            println("strTimeNow ${LocalDateTime.now().toString()} $strTimeNow")
             val timeNow = LocalDateTime.parse(strTimeNow, formatter)
             binding.currentTemperatureView.text = forecastList.find { forecast -> forecast.time.replace('T',' ') == strTimeNow }?.temperature_2m?.roundToInt().toString()
             binding.forecastDayView.text = "${timeNow.dayOfMonth} ${monthList[timeNow.month.ordinal]}"
@@ -127,6 +124,19 @@ class MainActivity : AppCompatActivity() {
                 forecastAdapter.notifyDataSetChanged()
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        runBlocking {
+            println("0st runBlock Main $url")
+            val userData = dataStore.data.first()
+            url = url.replace("(?<=latitude=)[\\-0-9.a-z]+".toRegex(),((userData[DataStoreKeys.LATITUDE])?.toString() ?: "0.0"))
+            url = url.replace("(?<=longitude=)[\\-0-9.a-z]+".toRegex(),((userData[DataStoreKeys.LONGITUDE])?.toString() ?: "0.0"))
+            println("1st runBlock Main $url")
+            val json = pullAndStore(url)
+        }
+        forecastViewModel.loadForecasts()
     }
 
     private suspend fun downloadJsonContent(urlString: String): String? {
