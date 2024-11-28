@@ -36,7 +36,7 @@ import java.time.Duration
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-var url = "https://api.open-meteo.com/v1/forecast?latitude=53.52&longitude=21.41&hourly=temperature_2m,rain&forecast_days=14&models=best_match"
+var url = "https://api.open-meteo.com/v1/forecast?latitude=53.52&longitude=21.41&hourly=temperature_2m,rain&forecast_days=14&models=best_match&timezone=auto"
 
 fun isOnline(context: Context): Boolean {
     val connectivityManager =
@@ -81,8 +81,8 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
             preferencesMap = collectPreferences().toMutableMap()
             val match = ("(?<=latitude=)[0-9.]+").toRegex().find(url)
             println("Match ${match?.value.toString()} | ${(preferencesMap["latitude"] as Double).toString()}")
-            url = url.replace("(?<=latitude=)[0-9.]+".toRegex(),(preferencesMap["latitude"] as Double).toString())
-            url = url.replace("(?<=longitude=)[0-9.]+".toRegex(),(preferencesMap["longitude"] as Double).toString())
+            url = url.replace("(?<=latitude=)[\\-0-9.]+".toRegex(),(preferencesMap["latitude"] as Double).toString())
+            url = url.replace("(?<=longitude=)[\\-0-9.]+".toRegex(),(preferencesMap["longitude"] as Double).toString())
             val json = pullAndStore(url)
             println("Middle ${forecastList.size}")
         }
@@ -146,7 +146,6 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         {
             forecastList = db.forecastDao().getAllForecasts()
         }
-
         return true
     }
 
@@ -154,8 +153,6 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         val preferences = applicationContext.dataStore.data.first()
 
         return mapOf(
-
-
             "temperature_drop_notifications" to (preferences[DataStoreKeys.TEMPERATURE_DROP_NOTIFICATIONS] ?: false),
             "rain_notifications" to (preferences[DataStoreKeys.RAIN_NOTIFICATIONS] ?: false),
             "latitude" to (preferences[DataStoreKeys.LATITUDE] ?: 0.0),

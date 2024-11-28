@@ -68,8 +68,8 @@ class MainActivity : AppCompatActivity() {
         runBlocking {
             println("0st runBlock Main $url")
             val userData = dataStore.data.first()
-            url = url.replace("(?<=latitude=)[0-9\\.]+".toRegex(),(userData[DataStoreKeys.LATITUDE]).toString())
-            url = url.replace("(?<=longitude=)[0-9\\.]+".toRegex(),(userData[DataStoreKeys.LONGITUDE]).toString())
+            url = url.replace("(?<=latitude=)[\\-0-9.]+".toRegex(),(userData[DataStoreKeys.LATITUDE]).toString())
+            url = url.replace("(?<=longitude=)[\\-0-9.]+".toRegex(),(userData[DataStoreKeys.LONGITUDE]).toString())
             println("1st runBlock Main $url")
         }
 

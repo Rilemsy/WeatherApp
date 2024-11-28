@@ -32,7 +32,6 @@ android:orientation="vertical">
         app:layout_constraintRight_toRightOf="parent"
         app:layout_constraintTop_toTopOf="@id/upGuideline"
         android:textSize="150sp"
-        android:text="-22"
         android:textColor="@color/white">
     </TextView>
     <TextView

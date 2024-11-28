@@ -76,8 +76,7 @@
         android:layout_height="wrap_content"
         android:text="Показывать в прогнозе температуру"
         android:textColor="@color/white"
-        app:buttonTint="@color/white"
-        />
+        app:buttonTint="@color/white" />
 
     <androidx.appcompat.widget.AppCompatCheckBox
         android:id="@+id/rainDisplayCheckBox"
@@ -85,7 +84,7 @@
         android:layout_height="wrap_content"
         android:text="Показывать в прогнозе дождь"
         android:textColor="@color/white"
-        app:buttonTint="@color/white"/>
+        app:buttonTint="@color/white" />
 
     <androidx.appcompat.widget.AppCompatCheckBox
         android:layout_width="wrap_content"
@@ -141,7 +140,7 @@
 
         </LinearLayout>
 
-        <LinearLayout
+        <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
@@ -149,10 +148,14 @@
             >
 
             <TextView
+                android:id ="@+id/temperatureDropDescription"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Считать падением при разнице не менее: "
-                android:textColor="@color/white"/>
+                android:text="Считать падением при\nразнице не менее:"
+                android:textColor="@color/white"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toLeftOf="parent"/>
 
             <EditText
                 android:id="@+id/temperatureDropValueEdit"
@@ -160,15 +163,21 @@
                 android:layout_height="wrap_content"
                 android:inputType="number"
                 android:textColor="@color/white"
-                android:text="5"/>
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/temperatureDropDescription"
+                android:text="5" />
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textColor="@color/white"
-                android:text="C°" />
+                android:text="C°"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                app:layout_constraintLeft_toRightOf="@id/temperatureDropValueEdit"/>
 
-        </LinearLayout>
+        </androidx.constraintlayout.widget.ConstraintLayout>
 
         <androidx.appcompat.widget.AppCompatCheckBox
             android:id="@+id/rainTrackCheckBox"
