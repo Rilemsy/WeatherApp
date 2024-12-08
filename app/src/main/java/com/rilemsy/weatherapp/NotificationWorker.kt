@@ -164,6 +164,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
     {
         Log.d("myTag","CheckTime ${forecastList.size}")
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")
+        var returnFlag : Boolean = false
         var temperatureSum : Double = 0.0
         var averageTemperatureToday : Double = 0.0
         val timeNow = LocalDateTime.parse(LocalDateTime.now().toString().replace('T',' ').dropLast(7), formatter)  //.format(formatter)
@@ -212,8 +213,12 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                 userData[DataStoreKeys.NOTIFICATION_EVENT_TIME_TEMPERATURE_DROP] = forecastList[24].time
             }
         }
+        else
+        {
+            returnFlag = true
+        }
 
-        if (preferencesMap["temperature_drop_notifications"] as Boolean)
+        if (preferencesMap["temperature_drop_notifications"] as Boolean && !returnFlag)
         {
             var index : Int = 0
             for (forecast in forecastList)
