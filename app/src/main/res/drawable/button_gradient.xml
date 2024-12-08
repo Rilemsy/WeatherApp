@@ -1,9 +1,21 @@
 <?xml version="1.0" encoding="utf-8"?>
-<shape xmlns:android="http://schemas.android.com/apk/res/android">
-<gradient
-    android:startColor="@color/sky_medium"
-    android:endColor="@color/sky_dark"
-    android:angle="90" />
-
-    <corners android:radius="8dp"/>
-</shape>
+<selector xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:state_pressed="true">
+        <shape>
+            <gradient
+                android:startColor="@color/button_pressed_start"
+                android:endColor="@color/button_pressed_end"
+                android:angle="90" />
+            <corners android:radius="28dp" />
+        </shape>
+    </item>
+    <item>
+        <shape>
+            <gradient
+                android:startColor="@color/sky_light"
+                android:endColor="@color/cloud_gray"
+                android:angle="90" />
+            <corners android:radius="28dp" />
+        </shape>
+    </item>
+</selector>

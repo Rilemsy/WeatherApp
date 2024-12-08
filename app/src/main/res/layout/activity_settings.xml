@@ -28,7 +28,7 @@
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintBottom_toBottomOf="@id/saveButton"
-            android:background="@drawable/gradient_forecast"
+            android:background="@drawable/button_gradient"
             app:backgroundTint="@null"
             android:text="Вернуться"
             android:textColor="#000000"/>
@@ -39,7 +39,7 @@
             android:layout_height="wrap_content"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            android:background="@drawable/gradient_forecast"
+            android:background="@drawable/button_gradient"
             app:backgroundTint="@null"
             android:text="Сохранить\nизменения"
             android:textColor="#000000"/>

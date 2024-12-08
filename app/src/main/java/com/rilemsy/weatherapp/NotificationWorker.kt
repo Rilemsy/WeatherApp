@@ -204,7 +204,16 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         if (!notificationTemperatureDropTime.isNullOrEmpty())
             notificationTemperatureDropLocalDateTime = LocalDateTime.parse(notificationTemperatureDropTime.replace('T',' '),formatter)
 
-        if (preferencesMap["temperature_drop_notifications"] as Boolean && (timeNow.isAfter(notificationTemperatureDropLocalDateTime) || notificationTemperatureDropTime.isNullOrEmpty()))
+        if ((timeNow.isAfter(notificationTemperatureDropLocalDateTime) || notificationTemperatureDropTime.isNullOrEmpty() )&& forecastList.isNotEmpty())
+        {
+            preferencesMap["notification_event_time_temperature_drop"] = forecastList[24].time
+            val dataStore = applicationContext.dataStore
+            dataStore.edit { userData ->
+                userData[DataStoreKeys.NOTIFICATION_EVENT_TIME_TEMPERATURE_DROP] = forecastList[24].time
+            }
+        }
+
+        if (preferencesMap["temperature_drop_notifications"] as Boolean)
         {
             var index : Int = 0
             for (forecast in forecastList)
@@ -217,7 +226,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                     println("Avrg $averageTemperature $averageTemperatureToday")
                     val forecastTime = LocalDateTime.parse(forecast.time.replace('T',' ').replaceRange(11,13,"00"),formatter)
                     var hoursDifference = Duration.between(timeNow, forecastTime).toHours()
-                    println("forecasts hourdifference $hoursDifference")
+                    println("forecasts hour difference $hoursDifference")
                     println("Check avg calc ${averageTemperatureToday - averageTemperature}   ${preferencesMap["temperature_drop_value"] as Int}")
                     if (averageTemperatureToday - averageTemperature >= preferencesMap["temperature_drop_value"] as Int
                         &&  hoursDifference >=0 && hoursDifference <= (preferencesMap["temperature_drop_days"] as Int)*24)

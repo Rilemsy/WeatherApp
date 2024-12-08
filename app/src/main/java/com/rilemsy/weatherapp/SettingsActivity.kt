@@ -1,36 +1,29 @@
 package com.rilemsy.weatherapp
 
 import NotificationWorker
-import android.R.attr
-import android.content.ContentValues.TAG
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
-import android.util.Log
 import android.widget.Button
 import android.widget.CheckBox
 import android.widget.EditText
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.edit
-import androidx.datastore.preferences.core.emptyPreferences
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkInfo
 import androidx.work.WorkManager
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 
@@ -179,6 +172,9 @@ class SettingsActivity : AppCompatActivity() {
                 }
             }
         }
+
+        val toast = Toast.makeText(this, "Настройки сохранены", Toast.LENGTH_SHORT)
+        toast.show()
 
         if (notificationsEnabled)
             scheduleWeatherCheck(this)

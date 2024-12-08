@@ -71,7 +71,7 @@ class MainActivity : AppCompatActivity() {
             url = url.replace("(?<=latitude=)[\\-0-9.a-z]+".toRegex(),((userData[DataStoreKeys.LATITUDE])?.toString() ?: "0.0"))
             url = url.replace("(?<=longitude=)[\\-0-9.a-z]+".toRegex(),((userData[DataStoreKeys.LONGITUDE])?.toString() ?: "0.0"))
             println("1st runBlock Main $url")
-            val json = pullAndStore(url)
+            pullAndStore(url)
         }
         println("After Main $url")
 
@@ -127,13 +127,14 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        forecastDay = 0
         runBlocking {
             println("0st runBlock Main $url")
             val userData = dataStore.data.first()
             url = url.replace("(?<=latitude=)[\\-0-9.a-z]+".toRegex(),((userData[DataStoreKeys.LATITUDE])?.toString() ?: "0.0"))
             url = url.replace("(?<=longitude=)[\\-0-9.a-z]+".toRegex(),((userData[DataStoreKeys.LONGITUDE])?.toString() ?: "0.0"))
             println("1st runBlock Main $url")
-            val json = pullAndStore(url)
+            pullAndStore(url)
         }
         forecastViewModel.loadForecasts()
     }

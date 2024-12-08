@@ -17,7 +17,7 @@ android:orientation="vertical">
         android:layout_marginTop="16dp"
         android:layout_marginRight="16dp"
 
-        android:background="@drawable/gradient_forecast"
+        android:background="@drawable/button_gradient"
         app:backgroundTint="@null"
         android:text="Настройки"
         android:textColor="#000000">
@@ -144,7 +144,7 @@ android:orientation="vertical">
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Пред."
-                android:background="@drawable/gradient_forecast"
+                android:background="@drawable/button_gradient"
                 app:backgroundTint="@null"
                 android:id = "@+id/prevForecastButton"
                 app:layout_constraintLeft_toLeftOf="parent"
@@ -155,7 +155,7 @@ android:orientation="vertical">
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/gradient_forecast"
+                android:background="@drawable/button_gradient"
                 app:backgroundTint="@null"
                 android:text="След."
                 android:id = "@+id/nextForecastButton"
