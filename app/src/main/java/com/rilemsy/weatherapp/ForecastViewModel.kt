@@ -17,15 +17,6 @@ class ForecastViewModel(private val database: ForecastDatabase) : ViewModel() {
     private val _forecastList = MutableLiveData<List<Forecast>>()
     val forecastList: LiveData<List<Forecast>> get()= _forecastList
 
-    fun updateForecast(/*newForecastList: List<Forecast>*/) {
-//        _visitorList.value?.add(visitor)
-//        _visitorList.value = _visitorList.value
-
-
-        //_forecastList.value = newForecastList
-
-    }
-
     fun loadForecasts(){
         viewModelScope.launch{
             val forecasts = withContext(Dispatchers.IO){

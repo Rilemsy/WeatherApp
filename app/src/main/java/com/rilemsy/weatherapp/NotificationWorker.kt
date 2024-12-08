@@ -75,24 +75,13 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
     val monthList = listOf("января","февраля","марта","апреля","мая","июня","июля","августа","сентября","октября","ноября","декабря")
 
     override suspend fun doWork(): Result {
-        Log.d("myTag", "Worker Work");
-
-        println("Before")
         runBlocking {
             preferencesMap = collectPreferences().toMutableMap()
-            val match = ("(?<=latitude=)[0-9.]+").toRegex().find(url)
-            println("Match ${match?.value.toString()} | ${(preferencesMap["latitude"] as Double).toString()}")
             url = url.replace("(?<=latitude=)[\\-0-9.a-z]+".toRegex(),(preferencesMap["latitude"] as Double).toString())
             url = url.replace("(?<=longitude=)[\\-0-9.a-z]+".toRegex(),(preferencesMap["longitude"] as Double).toString())
-            val json = pullAndStore(url)
-            println("Middle ${forecastList.size}")
+            pullAndStore(url)
         }
-        println("After $url")
-//        val eventMessage = "${12}.${34} будет падение температуры"
-//        sendNotification(eventMessage, NotificationEvent.TEMPERATURE_DROP)
-
         checkTimeForNotifications()
-
         return Result.success()
     }
 
@@ -107,7 +96,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         }
     }
 
-    suspend fun pullAndStore(url : String): Boolean
+    suspend fun pullAndStore(url : String)
     {
         Log.d("myTag", "Pull");
 
@@ -147,7 +136,6 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         {
             forecastList = db.forecastDao().getAllForecasts()
         }
-        return true
     }
 
     private suspend fun collectPreferences(): Map<String, Any?> {
@@ -203,7 +191,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                     dataStore.edit { userData ->
                         userData[DataStoreKeys.NOTIFICATION_EVENT_TIME_RAIN] = forecast.time
                     }
-                    val eventMessage = "${forecastTime.dayOfMonth} ${monthList[forecastTime.month.value-1]} в ${forecastTime.hour}.00 будет дождь"
+                    val eventMessage = "${forecastTime.dayOfMonth} ${monthList[forecastTime.month.value-1]} в ${forecastTime.hour}.00 ожидается дождь"
                     sendNotification(eventMessage, NotificationEvent.RAIN)
                     break
                 }
@@ -240,7 +228,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
                         dataStore.edit { userData ->
                             userData[DataStoreKeys.NOTIFICATION_EVENT_TIME_TEMPERATURE_DROP] = editedForecastTime
                         }
-                        val eventMessage = "${forecastTime.dayOfMonth} ${monthList[forecastTime.month.value-1]} будет падение температуры"
+                        val eventMessage = "${forecastTime.dayOfMonth} ${monthList[forecastTime.month.value-1]} ожидается падение температуры"
                         sendNotification(eventMessage, NotificationEvent.TEMPERATURE_DROP)
                         break
                     }
@@ -255,7 +243,7 @@ class NotificationWorker(appContext: Context, workerParams: WorkerParameters) : 
         }
     }
 
-    @SuppressLint("MissingPermission")
+    @SuppressLint("MissingPermission", "ObsoleteSdkInt")
     fun sendNotification(text: String, event: NotificationEvent ) {
         val notificationManager = applicationContext.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {

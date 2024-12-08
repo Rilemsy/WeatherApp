@@ -186,8 +186,8 @@ class SettingsActivity : AppCompatActivity() {
             WorkManager.getInstance(this).cancelUniqueWork("getForecast")
     }
 
-    private fun scheduleWeatherCheck(context: Context){
-        val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(15, TimeUnit.MINUTES).build()
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.REPLACE,workRequest)
-    }
+        private fun scheduleWeatherCheck(context: Context){
+            val workRequest = PeriodicWorkRequestBuilder<NotificationWorker>(30, TimeUnit.MINUTES).build()
+            WorkManager.getInstance(context).enqueueUniquePeriodicWork("getForecast", ExistingPeriodicWorkPolicy.REPLACE,workRequest)
+        }
 }

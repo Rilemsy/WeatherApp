@@ -79,7 +79,6 @@ class MainActivity : AppCompatActivity() {
         forecastAdapter = ForecastAdapter(emptyList())
         recyclerView.layoutManager = LinearLayoutManager(this, LinearLayoutManager.HORIZONTAL, false)
         recyclerView.adapter = forecastAdapter
-        println("Check adapter list")
         forecastViewModel = ViewModelProvider(this,ForecastViewModelFactory(database)).get(ForecastViewModel::class.java)
 
         val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm")

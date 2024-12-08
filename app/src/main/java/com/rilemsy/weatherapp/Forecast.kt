@@ -5,7 +5,6 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "forecast_table")
 data class  Forecast(
-    //@PrimaryKey(autoGenerate = true) val id: Int = 0,
     @PrimaryKey val time: String,
     val temperature_2m: Double?,
     val rain: Double?
